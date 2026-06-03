@@ -1,0 +1,5 @@
+{
+  "audit": {
+    "output": "docs/agent-readiness-report.md"
+  }
+}

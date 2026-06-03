@@ -1,0 +1,144 @@
+# agent-readiness-kit
+
+Audit whether a software repository is ready for AI coding agents (Cursor, Codex, Claude Code, GitHub Copilot, and similar tools).
+
+The CLI inspects repo structure, configuration, documentation, scripts, tests, and agent instruction files, then produces a terminal summary, optional JSON, and an optional Markdown report. Use `ark init` and `ark generate` to scaffold practical starter files.
+
+## Install
+
+```bash
+pnpm add -D agent-readiness-kit
+# or clone and link locally
+pnpm install
+pnpm build
+```
+
+Global use after build:
+
+```bash
+pnpm link --global
+ark audit
+```
+
+Local development:
+
+```bash
+pnpm install
+pnpm dev audit
+```
+
+## Commands
+
+| Command | Description |
+| --- | --- |
+| `ark audit` | Run audit and print terminal summary |
+| `ark audit --json` | Machine-readable JSON on stdout |
+| `ark audit --output docs/agent-readiness-report.md` | Write Markdown report |
+| `ark init` | Create starter files (skip if present) |
+| `ark generate cursor` | Create `.cursor/rules/project.mdc` |
+| `ark generate codex` | Create `AGENTS.md` and Codex prompt template |
+| `ark generate claude` | Create `CLAUDE.md` and Claude prompt template |
+
+Pass `--force` on `init` or `generate` to overwrite existing files.
+
+## `.arkrc` (optional)
+
+Place a JSON file named `.arkrc` at the repository root to set defaults. CLI flags and arguments override `.arkrc`.
+
+```json
+{
+  "audit": {
+    "repoPath": ".",
+    "json": false,
+    "output": "docs/agent-readiness-report.md"
+  },
+  "init": {
+    "force": false,
+    "repoPath": "."
+  },
+  "generate": {
+    "force": false,
+    "repoPath": "."
+  }
+}
+```
+
+Only include the sections you need. Invalid `.arkrc` files cause the command to exit with an error.
+
+## Sample output
+
+```text
+Repository: /path/to/repo
+
+Agent Readiness Score: 68 / 100
+
+Category scores:
+  Agent instructions: 15/20
+  Project architecture clarity: 12/15
+  ...
+
+Strong:
+  ✓ README.md found
+  ✓ Test files found (12)
+
+Missing:
+  ✗ AGENTS.md
+  ✗ .env.example
+
+Recommended next actions:
+  1. Add AGENTS.md with project overview, commands, and agent boundaries
+  2. Add docs/ARCHITECTURE.md describing system boundaries
+```
+
+## Scoring (100 points)
+
+| Category | Points |
+| --- | ---: |
+| Agent instructions | 20 |
+| Project architecture clarity | 15 |
+| Developer workflow clarity | 15 |
+| Testing and validation | 15 |
+| Safety boundaries | 15 |
+| Codebase navigability | 10 |
+| Prompt assets | 10 |
+
+Agent instructions scoring:
+
+- **20** — `AGENTS.md` plus at least one tool-specific file (`.cursorrules`, `.cursor/rules/*.mdc`, `CLAUDE.md`, `.github/copilot-instructions.md`)
+- **15** — `AGENTS.md` only
+- **10** — tool-specific only
+- **0** — none
+
+## Non-goals
+
+- No LLM or external API calls
+- No telemetry or authentication
+- Does not replace human code review
+- No guarantee that agents will perform well in your repo
+
+## Roadmap
+
+- Category weight overrides in `.arkrc`
+- Language-specific check packs (Python, Go, Rust)
+- CI GitHub Action wrapper
+- SARIF export for CI dashboards
+
+## Development
+
+```bash
+pnpm install
+pnpm test
+pnpm typecheck
+pnpm build
+pnpm dev audit
+```
+
+## Security
+
+See [SECURITY.md](docs/SECURITY.md) for supported versions, vulnerability reporting, and scope.
+
+Report security issues privately via [GitHub Security Advisories](https://github.com/alipajand/agent-readiness-kit/security/advisories/new) — do not open a public issue for undisclosed vulnerabilities.
+
+## License
+
+MIT
