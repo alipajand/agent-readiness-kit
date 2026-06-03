@@ -15,7 +15,10 @@ const INIT_FILES: Array<{ rel: string; content: string }> = [
   { rel: 'AGENTS.md', content: AGENTS_MD },
   { rel: 'docs/ARCHITECTURE.md', content: ARCHITECTURE_MD },
   { rel: 'docs/prompts/QA_AUDIT_PROMPT.md', content: QA_AUDIT_PROMPT },
-  { rel: 'docs/prompts/FEATURE_IMPLEMENTATION_PROMPT.md', content: FEATURE_IMPLEMENTATION_PROMPT },
+  {
+    rel: 'docs/prompts/FEATURE_IMPLEMENTATION_PROMPT.md',
+    content: FEATURE_IMPLEMENTATION_PROMPT,
+  },
   { rel: 'docs/prompts/REFACTOR_PROMPT.md', content: REFACTOR_PROMPT },
 ];
 

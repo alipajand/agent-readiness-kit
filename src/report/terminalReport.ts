@@ -65,7 +65,9 @@ export function formatTerminalReport(result: AuditResult): string {
   lines.push('');
   lines.push(pc.bold('Recommended next actions:'));
   if (result.recommendations.length === 0) {
-    lines.push(`  ${pc.dim('1. Continue refining agent docs and safety boundaries')}`);
+    lines.push(
+      `  ${pc.dim('1. Continue refining agent docs and safety boundaries')}`,
+    );
   } else {
     result.recommendations.forEach((rec, i) => {
       const text = rec.match(/^\d+\./) ? rec : `${i + 1}. ${rec}`;

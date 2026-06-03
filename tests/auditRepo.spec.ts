@@ -43,7 +43,10 @@ describe('auditRepo', () => {
     );
     await writeFile(path.join(repoPath, 'README.md'), '# Test\n');
     await mkdir(path.join(repoPath, 'tests'), { recursive: true });
-    await writeFile(path.join(repoPath, 'tests/foo.spec.ts'), 'import { it } from "vitest";');
+    await writeFile(
+      path.join(repoPath, 'tests/foo.spec.ts'),
+      'import { it } from "vitest";',
+    );
 
     const result = await auditRepo(repoPath);
     const workflow = result.categories.find((c) => c.id === 'workflow');
@@ -55,7 +58,10 @@ describe('auditRepo', () => {
   it('scores AGENTS.md plus cursor rules at 20', async () => {
     await writeFile(path.join(repoPath, 'AGENTS.md'), '# Agents\n');
     await mkdir(path.join(repoPath, '.cursor', 'rules'), { recursive: true });
-    await writeFile(path.join(repoPath, '.cursor', 'rules', 'project.mdc'), '---\n');
+    await writeFile(
+      path.join(repoPath, '.cursor', 'rules', 'project.mdc'),
+      '---\n',
+    );
     await writeFile(path.join(repoPath, 'README.md'), '# Test\n');
 
     const result = await auditRepo(repoPath);
@@ -67,7 +73,10 @@ describe('auditRepo', () => {
     const { AGENTS_MD } = await import('../src/generate/templates.js');
     await writeFile(path.join(repoPath, 'AGENTS.md'), AGENTS_MD);
     await mkdir(path.join(repoPath, '.cursor', 'rules'), { recursive: true });
-    await writeFile(path.join(repoPath, '.cursor', 'rules', 'project.mdc'), '---\n');
+    await writeFile(
+      path.join(repoPath, '.cursor', 'rules', 'project.mdc'),
+      '---\n',
+    );
     await writeFile(path.join(repoPath, 'README.md'), '# Test\n');
 
     const result = await auditRepo(repoPath);
@@ -75,7 +84,8 @@ describe('auditRepo', () => {
     expect(agent?.score).toBe(20);
     expect(
       agent?.findings.some(
-        (f) => f.status === 'warn' && f.message.includes('starter placeholders'),
+        (f) =>
+          f.status === 'warn' && f.message.includes('starter placeholders'),
       ),
     ).toBe(true);
   });

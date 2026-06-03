@@ -12,7 +12,10 @@ export class ArkrcError extends Error {
   }
 }
 
-export function formatArkrcValidationError(repoPath: string, issues: string): string {
+export function formatArkrcValidationError(
+  repoPath: string,
+  issues: string,
+): string {
   return `Invalid ${ARKRC_FILENAME} in ${repoPath}: ${issues}`;
 }
 
@@ -28,19 +31,26 @@ export async function loadArkrc(repoPath: string): Promise<ArkRc | null> {
     raw = JSON.parse(text) as unknown;
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
-    throw new ArkrcError(`Failed to parse ${ARKRC_FILENAME} at ${filePath}: ${detail}`);
+    throw new ArkrcError(
+      `Failed to parse ${ARKRC_FILENAME} at ${filePath}: ${detail}`,
+    );
   }
 
   const parsed = arkrcSchema.safeParse(raw);
   if (!parsed.success) {
-    const issues = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
+    const issues = parsed.error.issues
+      .map((i) => `${i.path.join('.')}: ${i.message}`)
+      .join('; ');
     throw new ArkrcError(formatArkrcValidationError(repoPath, issues));
   }
 
   return parsed.data;
 }
 
-export function resolveRepoArg(repoArg: string, configRepoPath?: string): string {
+export function resolveRepoArg(
+  repoArg: string,
+  configRepoPath?: string,
+): string {
   if (repoArg !== '.') {
     return repoArg;
   }

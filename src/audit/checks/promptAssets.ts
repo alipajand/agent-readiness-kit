@@ -1,7 +1,10 @@
 import path from 'node:path';
 import { dirExists } from '../../fs/fileExists.js';
 import { findFiles } from '../../fs/findFiles.js';
-import { fileHasPlaceholderContent, PLACEHOLDER_WARNING } from '../placeholderDetection.js';
+import {
+  fileHasPlaceholderContent,
+  PLACEHOLDER_WARNING,
+} from '../placeholderDetection.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 10;
@@ -16,7 +19,9 @@ const PROMPT_NAME_PATTERNS = [
   /audit/i,
 ];
 
-export async function checkPromptAssets(repoPath: string): Promise<CategoryResult> {
+export async function checkPromptAssets(
+  repoPath: string,
+): Promise<CategoryResult> {
   const findings: Finding[] = [];
   let score = 0;
 
@@ -54,7 +59,9 @@ export async function checkPromptAssets(repoPath: string): Promise<CategoryResul
 
   const docsPromptFiles = promptFiles.filter((f) => {
     const rel = path.relative(repoPath, f);
-    return rel.startsWith(`docs${path.sep}prompts${path.sep}`) && rel.endsWith('.md');
+    return (
+      rel.startsWith(`docs${path.sep}prompts${path.sep}`) && rel.endsWith('.md')
+    );
   });
   for (const file of docsPromptFiles) {
     const rel = path.relative(repoPath, file);
@@ -82,13 +89,17 @@ export async function checkPromptAssets(repoPath: string): Promise<CategoryResul
   } else if (promptFiles.length > 0) {
     findings.push({
       status: 'warn',
-      message: 'Prompt files exist but no named QA/refactor/bugfix templates detected',
+      message:
+        'Prompt files exist but no named QA/refactor/bugfix templates detected',
     });
   }
 
   const hasQa = promptFiles.some((f) => /qa/i.test(path.basename(f)));
   if (!hasQa) {
-    findings.push({ status: 'warn', message: 'No reusable QA prompt template detected' });
+    findings.push({
+      status: 'warn',
+      message: 'No reusable QA prompt template detected',
+    });
   } else {
     score += 1;
   }

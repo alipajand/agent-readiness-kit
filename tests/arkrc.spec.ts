@@ -54,7 +54,11 @@ describe('loadArkrc', () => {
 
 describe('resolve options', () => {
   const arkrc = {
-    audit: { output: 'docs/from-arkrc.md', json: true, repoPath: './configured' },
+    audit: {
+      output: 'docs/from-arkrc.md',
+      json: true,
+      repoPath: './configured',
+    },
     init: { force: true, repoPath: './configured' },
     generate: { force: true },
   };
@@ -67,7 +71,11 @@ describe('resolve options', () => {
   });
 
   it('CLI audit flags override .arkrc', () => {
-    const run = resolveAuditRunOptions('.', { json: false, output: 'cli.md' }, arkrc);
+    const run = resolveAuditRunOptions(
+      '.',
+      { json: false, output: 'cli.md' },
+      arkrc,
+    );
     expect(run.json).toBe(false);
     expect(run.output).toBe('cli.md');
   });
@@ -84,6 +92,8 @@ describe('resolve options', () => {
 
   it('merges generate force with CLI precedence', () => {
     expect(resolveGenerateOptions('.', {}, arkrc).force).toBe(true);
-    expect(resolveGenerateOptions('.', { force: false }, arkrc).force).toBe(false);
+    expect(resolveGenerateOptions('.', { force: false }, arkrc).force).toBe(
+      false,
+    );
   });
 });

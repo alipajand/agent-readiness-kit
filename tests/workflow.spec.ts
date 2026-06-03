@@ -59,9 +59,11 @@ describe('checkWorkflow', () => {
     });
 
     const result = await checkWorkflow(repoPath);
-    expect(result.findings.some((f) => f.status === 'fail' && f.message.includes('test'))).toBe(
-      true,
-    );
+    expect(
+      result.findings.some(
+        (f) => f.status === 'fail' && f.message.includes('test'),
+      ),
+    ).toBe(true);
   });
 
   it('creates a warn finding when typecheck script is missing', async () => {
@@ -74,7 +76,9 @@ describe('checkWorkflow', () => {
 
     const result = await checkWorkflow(repoPath);
     expect(
-      result.findings.some((f) => f.status === 'warn' && f.message.includes('typecheck')),
+      result.findings.some(
+        (f) => f.status === 'warn' && f.message.includes('typecheck'),
+      ),
     ).toBe(true);
   });
 });

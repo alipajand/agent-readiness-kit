@@ -17,8 +17,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "clean": "rm -rf dist docs/agent-readiness-report.md"
+    "format:check": "prettier --check ."
   },
   "keywords": [
     "ai",

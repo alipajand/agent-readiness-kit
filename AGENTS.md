@@ -12,15 +12,15 @@ Use `ark init` and `ark generate` to scaffold starter agent files. Generated wri
 
 Read `docs/ARCHITECTURE.md` before large changes. Respect module boundaries:
 
-| Module | Responsibility |
-| --- | --- |
-| `src/cli.ts` | Commander command routing |
-| `src/audit/*` | Audit orchestration and category checks |
-| `src/config/*` | `.arkrc` loading and validation |
-| `src/generate/*` | Safe starter file generation |
-| `src/report/*` | Terminal, JSON, and Markdown formatters |
-| `src/fs/*` | Filesystem helpers (`writeFileSafe`, glob search) |
-| `tests/*` | Vitest coverage for checks and CLI behavior |
+| Module           | Responsibility                                    |
+| ---------------- | ------------------------------------------------- |
+| `src/cli.ts`     | Commander command routing                         |
+| `src/audit/*`    | Audit orchestration and category checks           |
+| `src/config/*`   | `.arkrc` loading and validation                   |
+| `src/generate/*` | Safe starter file generation                      |
+| `src/report/*`   | Terminal, JSON, and Markdown formatters           |
+| `src/fs/*`       | Filesystem helpers (`writeFileSafe`, glob search) |
+| `tests/*`        | Vitest coverage for checks and CLI behavior       |
 
 **Agent-editable areas:** audit checks, report formatting, generate templates, filesystem helpers, tests, and documentation under `docs/`.
 

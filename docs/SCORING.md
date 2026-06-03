@@ -4,29 +4,29 @@ The audit produces a **100-point** score from seven categories. Each category ha
 
 ## Category weights
 
-| Category | ID | Max points |
-| --- | --- | --- |
-| Agent instructions | `agent-instructions` | 20 |
-| Project architecture clarity | `architecture` | 15 |
-| Developer workflow clarity | `workflow` | 15 |
-| Testing and validation | `testing` | 15 |
-| Safety boundaries | `safety` | 15 |
-| Codebase navigability | `navigability` | 10 |
-| Prompt assets | `prompt-assets` | 10 |
+| Category                     | ID                   | Max points |
+|------------------------------|----------------------|------------|
+| Agent instructions           | `agent-instructions` | 20         |
+| Project architecture clarity | `architecture`       | 15         |
+| Developer workflow clarity   | `workflow`           | 15         |
+| Testing and validation       | `testing`            | 15         |
+| Safety boundaries            | `safety`             | 15         |
+| Codebase navigability        | `navigability`       | 10         |
+| Prompt assets                | `prompt-assets`      | 10         |
 
 ## Workflow script scoring
 
 The workflow category awards up to **15** points from `package.json` scripts:
 
-| Script | Points |
-| --- | --- |
-| `dev` | 2 |
-| `build` | 3 |
-| `lint` | 2 |
-| `test` | 3 |
-| `typecheck` | 3 |
-| `format` | 1 |
-| `clean` | 1 |
+| Script      | Points |
+|-------------|--------|
+| `dev`       | 2      |
+| `build`     | 3      |
+| `lint`      | 2      |
+| `test`      | 3      |
+| `typecheck` | 3      |
+| `format`    | 1      |
+| `clean`     | 1      |
 
 All seven scripts present yields **15/15**.
 

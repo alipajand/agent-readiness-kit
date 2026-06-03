@@ -17,7 +17,9 @@ export function containsPlaceholderContent(content: string): boolean {
   return PLACEHOLDER_PATTERNS.some((pattern) => content.includes(pattern));
 }
 
-export async function fileHasPlaceholderContent(filePath: string): Promise<boolean> {
+export async function fileHasPlaceholderContent(
+  filePath: string,
+): Promise<boolean> {
   try {
     const content = await readFile(filePath, 'utf8');
     return containsPlaceholderContent(content);

@@ -21,13 +21,25 @@ export function buildMissingAndRecommendations(
     for (const f of cat.findings) {
       if (f.status === 'fail') {
         if (f.message.includes('AGENTS.md')) {
-          add('AGENTS.md', 'Add AGENTS.md with project overview, commands, and agent boundaries');
+          add(
+            'AGENTS.md',
+            'Add AGENTS.md with project overview, commands, and agent boundaries',
+          );
         }
-        if (f.message.includes('ARCHITECTURE') || f.message.includes('architecture doc')) {
-          add('docs/ARCHITECTURE.md', 'Add docs/ARCHITECTURE.md describing system boundaries');
+        if (
+          f.message.includes('ARCHITECTURE') ||
+          f.message.includes('architecture doc')
+        ) {
+          add(
+            'docs/ARCHITECTURE.md',
+            'Add docs/ARCHITECTURE.md describing system boundaries',
+          );
         }
         if (f.message.includes('.env.example')) {
-          add('.env.example', 'Add .env.example listing required environment variables');
+          add(
+            '.env.example',
+            'Add .env.example listing required environment variables',
+          );
         }
         if (f.message.includes('README')) {
           add('README.md', 'Add README.md with setup and project overview');
@@ -36,7 +48,10 @@ export function buildMissingAndRecommendations(
           add('reusable QA prompt', 'Add docs/prompts/QA_AUDIT_PROMPT.md');
         }
         if (f.message.includes('test')) {
-          add('test script or test files', 'Add tests and a package.json test script');
+          add(
+            'test script or test files',
+            'Add tests and a package.json test script',
+          );
         }
       }
     }
@@ -58,12 +73,17 @@ export function buildMissingAndRecommendations(
 
   const promptCat = categories.find((c) => c.id === 'prompt-assets');
   if (promptCat && promptCat.score < 5) {
-    add('docs/prompts/', 'Add docs/prompts/ with QA_AUDIT_PROMPT.md and task templates');
+    add(
+      'docs/prompts/',
+      'Add docs/prompts/ with QA_AUDIT_PROMPT.md and task templates',
+    );
   }
 
   const workflowCat = categories.find((c) => c.id === 'workflow');
   if (workflowCat) {
-    const testFail = workflowCat.findings.some((f) => f.message.includes('Missing test script'));
+    const testFail = workflowCat.findings.some((f) =>
+      f.message.includes('Missing test script'),
+    );
     if (testFail) {
       add('package.json test script', 'Add a test script to package.json');
     }
@@ -90,7 +110,10 @@ export function finalizeAuditResult(
   categories: CategoryResult[],
 ): AuditResult {
   const score = sumCategoryScores(categories);
-  const { missing, recommendations } = buildMissingAndRecommendations(categories, repoPath);
+  const { missing, recommendations } = buildMissingAndRecommendations(
+    categories,
+    repoPath,
+  );
 
   return {
     repoPath,

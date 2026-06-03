@@ -4,7 +4,15 @@ import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 15;
 
-const ALL_SCRIPTS = ['dev', 'build', 'lint', 'test', 'typecheck', 'format', 'clean'] as const;
+const ALL_SCRIPTS = [
+  'dev',
+  'build',
+  'lint',
+  'test',
+  'typecheck',
+  'format',
+  'clean',
+] as const;
 
 const SCRIPT_POINTS: Record<(typeof ALL_SCRIPTS)[number], number> = {
   dev: 2,

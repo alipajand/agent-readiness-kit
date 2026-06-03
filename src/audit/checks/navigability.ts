@@ -24,21 +24,31 @@ const CLI_MODULE_DIRS = [
   'src/fs',
 ];
 
-export async function checkNavigability(repoPath: string): Promise<CategoryResult> {
+export async function checkNavigability(
+  repoPath: string,
+): Promise<CategoryResult> {
   const findings: Finding[] = [];
   let score = 0;
 
   for (const { rel, points } of PRIMARY_NAV_DOCS) {
     if (await fileExists(path.join(repoPath, rel))) {
       score += points;
-      findings.push({ status: 'pass', message: `Nav doc: ${rel}`, files: [rel] });
+      findings.push({
+        status: 'pass',
+        message: `Nav doc: ${rel}`,
+        files: [rel],
+      });
     }
   }
 
   for (const { rel, points } of SECONDARY_NAV_DOCS) {
     if (await fileExists(path.join(repoPath, rel))) {
       score += points;
-      findings.push({ status: 'pass', message: `Nav doc: ${rel}`, files: [rel] });
+      findings.push({
+        status: 'pass',
+        message: `Nav doc: ${rel}`,
+        files: [rel],
+      });
     }
   }
 
@@ -120,7 +130,10 @@ export async function checkNavigability(repoPath: string): Promise<CategoryResul
         'No navigability docs (ROUTES, API, SCORING) or module layout detected',
     });
   } else if (score < 6) {
-    findings.push({ status: 'warn', message: 'Partial codebase navigability signals' });
+    findings.push({
+      status: 'warn',
+      message: 'Partial codebase navigability signals',
+    });
   }
 
   return {
