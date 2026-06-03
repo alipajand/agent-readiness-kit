@@ -44,6 +44,8 @@ describe('writeFileSafe', () => {
     const result = await writeFileSafe(filePath, '# Architecture\n');
     expect(result.status).toBe('created');
     expect(path.isAbsolute(result.path)).toBe(true);
-    expect(relativeToRepo(dir, result.path)).toBe(path.join('docs', 'ARCHITECTURE.md'));
+    expect(relativeToRepo(dir, result.path)).toBe(
+      path.join('docs', 'ARCHITECTURE.md'),
+    );
   });
 });

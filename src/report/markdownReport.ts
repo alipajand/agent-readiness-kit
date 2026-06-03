@@ -26,7 +26,8 @@ export function formatMarkdownReport(result: AuditResult): string {
     lines.push(`### ${cat.label} (${cat.score}/${cat.maxScore})`);
     lines.push('');
     for (const f of cat.findings) {
-      const icon = f.status === 'pass' ? '✅' : f.status === 'warn' ? '⚠️' : '❌';
+      const icon =
+        f.status === 'pass' ? '✅' : f.status === 'warn' ? '⚠️' : '❌';
       lines.push(`- ${icon} ${f.message}`);
       if (f.files?.length) {
         lines.push(`  - Files: ${f.files.map((x) => `\`${x}\``).join(', ')}`);

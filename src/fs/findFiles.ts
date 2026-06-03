@@ -13,19 +13,11 @@ export async function findFiles(
     absolute: true,
     dot: true,
     onlyFiles: true,
-    ignore: options?.ignore ?? ['**/node_modules/**', '**/.git/**', '**/dist/**'],
-  });
-  return matches.sort();
-}
-
-export async function findDirs(repoPath: string, patterns: string | string[]): Promise<string[]> {
-  const patternList = Array.isArray(patterns) ? patterns : [patterns];
-  const matches = await fg(patternList, {
-    cwd: repoPath,
-    absolute: true,
-    dot: true,
-    onlyDirectories: true,
-    ignore: ['**/node_modules/**', '**/.git/**'],
+    ignore: options?.ignore ?? [
+      '**/node_modules/**',
+      '**/.git/**',
+      '**/dist/**',
+    ],
   });
   return matches.sort();
 }

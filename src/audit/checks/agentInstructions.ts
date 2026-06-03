@@ -1,12 +1,17 @@
 import path from 'node:path';
 import { fileExists } from '../../fs/fileExists.js';
 import { findFiles } from '../../fs/findFiles.js';
-import { fileHasPlaceholderContent, PLACEHOLDER_WARNING } from '../placeholderDetection.js';
+import {
+  fileHasPlaceholderContent,
+  PLACEHOLDER_WARNING,
+} from '../placeholderDetection.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 20;
 
-export async function checkAgentInstructions(repoPath: string): Promise<CategoryResult> {
+export async function checkAgentInstructions(
+  repoPath: string,
+): Promise<CategoryResult> {
   const findings: Finding[] = [];
   const detected: string[] = [];
 
@@ -17,7 +22,11 @@ export async function checkAgentInstructions(repoPath: string): Promise<Category
 
   if (await fileExists(agentsMd)) {
     detected.push('AGENTS.md');
-    findings.push({ status: 'pass', message: 'AGENTS.md found', files: ['AGENTS.md'] });
+    findings.push({
+      status: 'pass',
+      message: 'AGENTS.md found',
+      files: ['AGENTS.md'],
+    });
     if (await fileHasPlaceholderContent(agentsMd)) {
       findings.push({
         status: 'warn',
@@ -31,7 +40,11 @@ export async function checkAgentInstructions(repoPath: string): Promise<Category
 
   if (await fileExists(cursorRules)) {
     detected.push('.cursorrules');
-    findings.push({ status: 'pass', message: '.cursorrules found', files: ['.cursorrules'] });
+    findings.push({
+      status: 'pass',
+      message: '.cursorrules found',
+      files: ['.cursorrules'],
+    });
   }
 
   const cursorMdc = await findFiles(repoPath, '.cursor/rules/**/*.mdc');
@@ -46,7 +59,11 @@ export async function checkAgentInstructions(repoPath: string): Promise<Category
 
   if (await fileExists(claudeMd)) {
     detected.push('CLAUDE.md');
-    findings.push({ status: 'pass', message: 'CLAUDE.md found', files: ['CLAUDE.md'] });
+    findings.push({
+      status: 'pass',
+      message: 'CLAUDE.md found',
+      files: ['CLAUDE.md'],
+    });
   }
 
   if (await fileExists(copilot)) {
@@ -78,10 +95,14 @@ export async function checkAgentInstructions(repoPath: string): Promise<Category
     score = 10;
     findings.push({
       status: 'warn',
-      message: 'Tool-specific instructions only — add AGENTS.md for higher score',
+      message:
+        'Tool-specific instructions only — add AGENTS.md for higher score',
     });
   } else {
-    findings.push({ status: 'fail', message: 'No agent instruction files detected' });
+    findings.push({
+      status: 'fail',
+      message: 'No agent instruction files detected',
+    });
   }
 
   return {

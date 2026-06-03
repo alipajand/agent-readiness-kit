@@ -57,32 +57,37 @@ program
   .command('audit')
   .description('Audit repository agent readiness')
   .option('--json', 'Output machine-readable JSON')
-  .option('-o, --output <path>', 'Write Markdown report to file')
+  .option(
+    '-o, --output <path>',
+    'Write Markdown report (relative: under audited repo; absolute: as given)',
+  )
   .argument('[repoPath]', 'Repository path', '.')
-  .action(async (repoPath: string, opts: { json?: boolean; output?: string }) => {
-    const arkrc = await loadArkrcForRepo(repoPath);
-    const run = resolveAuditRunOptions(repoPath, opts, arkrc);
-    const resolved = resolveRepo(run.repoPathArg);
-    const result = await auditRepo(resolved);
+  .action(
+    async (repoPath: string, opts: { json?: boolean; output?: string }) => {
+      const arkrc = await loadArkrcForRepo(repoPath);
+      const run = resolveAuditRunOptions(repoPath, opts, arkrc);
+      const resolved = resolveRepo(run.repoPathArg);
+      const result = await auditRepo(resolved);
 
-    if (run.output) {
-      const outPath = path.isAbsolute(run.output)
-        ? run.output
-        : path.join(resolved, run.output);
-      await mkdir(path.dirname(outPath), { recursive: true });
-      await writeFile(outPath, formatMarkdownReport(result), 'utf8');
-      console.log(pc.green(`Report written: ${outPath}`));
-    }
+      if (run.output) {
+        const outPath = path.isAbsolute(run.output)
+          ? run.output
+          : path.join(resolved, run.output);
+        await mkdir(path.dirname(outPath), { recursive: true });
+        await writeFile(outPath, formatMarkdownReport(result), 'utf8');
+        console.error(pc.green(`Report written: ${outPath}`));
+      }
 
-    if (run.json) {
-      console.log(formatAuditJson(result));
-    } else if (!run.output) {
-      console.log(formatTerminalReport(result));
-    } else if (!run.json) {
-      console.log('');
-      console.log(formatTerminalReport(result));
-    }
-  });
+      if (run.json) {
+        console.log(formatAuditJson(result));
+      } else {
+        if (run.output) {
+          console.log('');
+        }
+        console.log(formatTerminalReport(result));
+      }
+    },
+  );
 
 program
   .command('init')
@@ -99,7 +104,9 @@ program
     printWriteResults(resolveRepo(run.repoPathArg), results);
   });
 
-const generate = program.command('generate').description('Generate tool-specific agent files');
+const generate = program
+  .command('generate')
+  .description('Generate tool-specific agent files');
 
 generate
   .command('cursor')

@@ -1,0 +1,44 @@
+---
+description: Project implementation rules for AI agents
+globs:
+alwaysApply: true
+---
+
+# Project agent rules
+
+## Role
+
+- Act as an **implementation agent**, not a product strategist.
+- Do not make product strategy or scope decisions without human approval.
+
+## Architecture
+
+- Respect existing architecture and module boundaries.
+- Read AGENTS.md and docs/ARCHITECTURE.md before large changes.
+
+## Implementation
+
+- Prefer minimal, focused diffs.
+- Avoid unrelated refactors and drive-by cleanup.
+- Match existing naming, types, and patterns.
+
+## Validation
+
+- Run relevant tests, lint, and typecheck commands before finishing.
+- Report commands run and their results.
+
+## Boundaries
+
+- Ask before changes to authentication, authorization, billing, or security.
+- Ask before database schema migrations or production configuration.
+- Do not commit secrets or disable safety checks.
+
+## Final report
+
+When done, include:
+
+1. Summary of what changed
+2. Files created or modified
+3. Commands run
+4. Test/lint results
+5. Known limitations

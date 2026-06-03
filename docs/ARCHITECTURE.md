@@ -8,18 +8,18 @@ The CLI has no runtime server, database, or network dependencies beyond reading 
 
 ## Major components
 
-| Path | Role |
-| --- | --- |
-| `src/cli.ts` | Commander entrypoint; routes `audit`, `init`, and `generate` subcommands |
-| `src/audit/auditRepo.ts` | Runs all category checks and finalizes the 100-point score |
-| `src/audit/checks/*` | Individual category auditors (agent instructions, architecture, workflow, testing, safety, navigability, prompt assets) |
-| `src/audit/scoring.ts` | Score aggregation, missing items, and recommendations |
-| `src/audit/placeholderDetection.ts` | Detects starter-template placeholders in checked-in docs |
-| `src/config/*` | Loads and validates optional `.arkrc`; merges CLI flags with config |
-| `src/generate/*` | Writes starter files via `writeFileSafe` (skip unless `--force`) |
-| `src/report/*` | Formats audit output for terminal, JSON, and Markdown |
-| `src/fs/*` | `writeFileSafe`, glob helpers, existence checks |
-| `tests/*` | Vitest specs for checks, reports, config, and generation |
+| Path                                | Role                                                                                                                    |
+|-------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| `src/cli.ts`                        | Commander entrypoint; routes `audit`, `init`, and `generate` subcommands                                                |
+| `src/audit/auditRepo.ts`            | Runs all category checks and finalizes the 100-point score                                                              |
+| `src/audit/checks/*`                | Individual category auditors (agent instructions, architecture, workflow, testing, safety, navigability, prompt assets) |
+| `src/audit/scoring.ts`              | Score aggregation, missing items, and recommendations                                                                   |
+| `src/audit/placeholderDetection.ts` | Detects starter-template placeholders in checked-in docs                                                                |
+| `src/config/*`                      | Loads and validates optional `.arkrc`; merges CLI flags with config                                                     |
+| `src/generate/*`                    | Writes starter files via `writeFileSafe` (skip unless `--force`)                                                        |
+| `src/report/*`                      | Formats audit output for terminal, JSON, and Markdown                                                                   |
+| `src/fs/*`                          | `writeFileSafe`, glob helpers, existence checks                                                                         |
+| `tests/*`                           | Vitest specs for checks, reports, config, and generation                                                                |
 
 ## Boundaries
 
@@ -30,8 +30,9 @@ The CLI has no runtime server, database, or network dependencies beyond reading 
 
 ```
 CLI command
-  → resolve repo path (argument, cwd, optional .arkrc)
-  → optional load .arkrc (audit/init/generate defaults)
+  → load .arkrc from resolved CLI [repoPath] (default: cwd)
+  → merge CLI flags with .arkrc (section repoPath applies only when [repoPath] is ".")
+  → resolve final target repo path
   → audit action OR generate action
   → report formatting OR safe file writes
   → stdout and/or written report path

@@ -79,18 +79,30 @@ export async function checkSafety(repoPath: string): Promise<CategoryResult> {
   }
 
   if (foundFiles.includes('.env.example')) {
-    findings.push({ status: 'pass', message: '.env.example found', files: ['.env.example'] });
+    findings.push({
+      status: 'pass',
+      message: '.env.example found',
+      files: ['.env.example'],
+    });
   } else {
     findings.push({ status: 'fail', message: '.env.example not found' });
   }
 
   if (foundFiles.includes('SECURITY.md')) {
-    findings.push({ status: 'pass', message: 'SECURITY.md found', files: ['SECURITY.md'] });
+    findings.push({
+      status: 'pass',
+      message: 'SECURITY.md found',
+      files: ['SECURITY.md'],
+    });
   }
 
   for (const f of foundFiles) {
     if (f !== '.env.example' && f !== 'SECURITY.md') {
-      findings.push({ status: 'pass', message: `Safety/ops doc: ${f}`, files: [f] });
+      findings.push({
+        status: 'pass',
+        message: `Safety/ops doc: ${f}`,
+        files: [f],
+      });
     }
   }
 

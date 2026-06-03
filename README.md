@@ -27,19 +27,27 @@ pnpm install
 pnpm dev audit
 ```
 
+`pnpm dev audit` is read-only (terminal summary only). To write a Markdown report in this repo:
+
+```bash
+pnpm dev audit --output docs/agent-readiness-report.md
+```
+
 ## Commands
 
-| Command | Description |
-| --- | --- |
-| `ark audit` | Run audit and print terminal summary |
-| `ark audit --json` | Machine-readable JSON on stdout |
-| `ark audit --output docs/agent-readiness-report.md` | Write Markdown report |
-| `ark init` | Create starter files (skip if present) |
-| `ark generate cursor` | Create `.cursor/rules/project.mdc` |
-| `ark generate codex` | Create `AGENTS.md` and Codex prompt template |
-| `ark generate claude` | Create `CLAUDE.md` and Claude prompt template |
+| Command                                             | Description                                   |
+| --------------------------------------------------- | --------------------------------------------- |
+| `ark audit`                                         | Run audit and print terminal summary          |
+| `ark audit --json`                                  | Machine-readable JSON on stdout               |
+| `ark audit --output docs/agent-readiness-report.md` | Write Markdown report                         |
+| `ark init`                                          | Create starter files (skip if present)        |
+| `ark generate cursor`                               | Create `.cursor/rules/project.mdc`            |
+| `ark generate codex`                                | Create `AGENTS.md` and Codex prompt template  |
+| `ark generate claude`                               | Create `CLAUDE.md` and Claude prompt template |
 
 Pass `--force` on `init` or `generate` to overwrite existing files.
+
+`audit --output` writes a Markdown report to the path you give. Relative paths are under the audited repo; absolute paths (for example `/tmp/report.md`) can write outside it. See [SECURITY.md](SECURITY.md#file-writes).
 
 ## `.arkrc` (optional)
 
@@ -64,6 +72,23 @@ Place a JSON file named `.arkrc` at the repository root to set defaults. CLI fla
 ```
 
 Only include the sections you need. Invalid `.arkrc` files cause the command to exit with an error.
+
+This repository keeps `"audit": {}` so a plain `ark audit` does not write files; pass `--output` when you want a Markdown report.
+
+### Config lookup order
+
+`ark` loads `.arkrc` from the CLI `[repoPath]` argument (default: current working directory), **before** applying `audit.repoPath` (or `init.repoPath` / `generate.repoPath`) from that file.
+
+| Command                   | Which `.arkrc` is loaded | Target repo                                                               |
+| ------------------------- | ------------------------ | ------------------------------------------------------------------------- |
+| `ark audit` (no path arg) | `.arkrc` in cwd          | `audit.repoPath` from that file, or cwd if omitted                        |
+| `ark audit ../other`      | `.arkrc` in `../other`   | `../other` — explicit path wins; `audit.repoPath` in that file is ignored |
+
+The same lookup rule applies to `init` and `generate`.
+
+**Typical pattern:** keep `.arkrc` in the repo you run commands from and omit the path argument; use `audit.repoPath` only when you want defaults to target another directory without passing it every time.
+
+**Surprise to avoid:** `ark audit ../other` does **not** load cwd’s `.arkrc`. It loads config from the passed repo only.
 
 ## Sample output
 
@@ -92,15 +117,15 @@ Recommended next actions:
 
 ## Scoring (100 points)
 
-| Category | Points |
-| --- | ---: |
-| Agent instructions | 20 |
-| Project architecture clarity | 15 |
-| Developer workflow clarity | 15 |
-| Testing and validation | 15 |
-| Safety boundaries | 15 |
-| Codebase navigability | 10 |
-| Prompt assets | 10 |
+| Category                     | Points |
+| ---------------------------- | -----: |
+| Agent instructions           |     20 |
+| Project architecture clarity |     15 |
+| Developer workflow clarity   |     15 |
+| Testing and validation       |     15 |
+| Safety boundaries            |     15 |
+| Codebase navigability        |     10 |
+| Prompt assets                |     10 |
 
 Agent instructions scoring:
 
@@ -135,7 +160,7 @@ pnpm dev audit
 
 ## Security
 
-See [SECURITY.md](docs/SECURITY.md) for supported versions, vulnerability reporting, and scope.
+See [SECURITY.md](SECURITY.md) for supported versions, vulnerability reporting, and scope.
 
 Report security issues privately via [GitHub Security Advisories](https://github.com/alipajand/agent-readiness-kit/security/advisories/new) — do not open a public issue for undisclosed vulnerabilities.
 

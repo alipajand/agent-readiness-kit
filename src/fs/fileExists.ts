@@ -1,6 +1,5 @@
 import { access } from 'node:fs/promises';
 import { constants } from 'node:fs';
-import path from 'node:path';
 
 export async function fileExists(filePath: string): Promise<boolean> {
   try {
@@ -18,8 +17,4 @@ export async function dirExists(dirPath: string): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-export function resolveRepoPath(repoPath: string, ...segments: string[]): string {
-  return path.join(repoPath, ...segments);
 }

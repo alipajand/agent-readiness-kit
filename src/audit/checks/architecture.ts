@@ -1,7 +1,10 @@
 import path from 'node:path';
 import { fileExists, dirExists } from '../../fs/fileExists.js';
 import { readJsonFile } from '../../fs/writeFileSafe.js';
-import { fileHasPlaceholderContent, PLACEHOLDER_WARNING } from '../placeholderDetection.js';
+import {
+  fileHasPlaceholderContent,
+  PLACEHOLDER_WARNING,
+} from '../placeholderDetection.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 15;
@@ -10,7 +13,9 @@ type PackageJson = {
   workspaces?: string[] | { packages?: string[] };
 };
 
-export async function checkArchitecture(repoPath: string): Promise<CategoryResult> {
+export async function checkArchitecture(
+  repoPath: string,
+): Promise<CategoryResult> {
   const findings: Finding[] = [];
   let score = 0;
 
@@ -18,27 +23,38 @@ export async function checkArchitecture(repoPath: string): Promise<CategoryResul
   const hasReadme = await fileExists(readme);
   if (hasReadme) {
     score += 5;
-    findings.push({ status: 'pass', message: 'README.md found', files: ['README.md'] });
+    findings.push({
+      status: 'pass',
+      message: 'README.md found',
+      files: ['README.md'],
+    });
   } else {
-    findings.push({ status: 'fail', message: 'README.md not found (required for >5 points)' });
+    findings.push({
+      status: 'fail',
+      message: 'README.md not found (required for >5 points)',
+    });
   }
 
-  const archPaths = [
-    'docs/ARCHITECTURE.md',
-    'docs/architecture.md',
-  ];
+  const archPaths = ['docs/ARCHITECTURE.md', 'docs/architecture.md'];
   let hasArchDoc = false;
   let archDocRel: string | null = null;
   for (const rel of archPaths) {
     if (await fileExists(path.join(repoPath, rel))) {
       hasArchDoc = true;
       archDocRel = rel;
-      findings.push({ status: 'pass', message: `Architecture doc: ${rel}`, files: [rel] });
+      findings.push({
+        status: 'pass',
+        message: `Architecture doc: ${rel}`,
+        files: [rel],
+      });
       break;
     }
   }
 
-  if (archDocRel && (await fileHasPlaceholderContent(path.join(repoPath, archDocRel)))) {
+  if (
+    archDocRel &&
+    (await fileHasPlaceholderContent(path.join(repoPath, archDocRel)))
+  ) {
     findings.push({
       status: 'warn',
       message: `${PLACEHOLDER_WARNING} (${archDocRel})`,
@@ -50,7 +66,11 @@ export async function checkArchitecture(repoPath: string): Promise<CategoryResul
   for (const rel of adrDirs) {
     if (await dirExists(path.join(repoPath, rel))) {
       hasArchDoc = true;
-      findings.push({ status: 'pass', message: `ADR/decisions directory: ${rel}`, files: [rel] });
+      findings.push({
+        status: 'pass',
+        message: `ADR/decisions directory: ${rel}`,
+        files: [rel],
+      });
       break;
     }
   }
@@ -93,9 +113,15 @@ export async function checkArchitecture(repoPath: string): Promise<CategoryResul
   score = Math.min(MAX_SCORE, score);
 
   if (score >= 12) {
-    findings.push({ status: 'pass', message: `Architecture clarity score: ${score}/${MAX_SCORE}` });
+    findings.push({
+      status: 'pass',
+      message: `Architecture clarity score: ${score}/${MAX_SCORE}`,
+    });
   } else if (score > 0) {
-    findings.push({ status: 'warn', message: `Partial architecture clarity: ${score}/${MAX_SCORE}` });
+    findings.push({
+      status: 'warn',
+      message: `Partial architecture clarity: ${score}/${MAX_SCORE}`,
+    });
   }
 
   return {

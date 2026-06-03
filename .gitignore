@@ -4,4 +4,3 @@ docs/agent-readiness-report.md
 *.log
 .DS_Store
 .idea/
-.cursor/
