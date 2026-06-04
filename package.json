@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "clean": "rm -rf dist"
   },
   "keywords": [
     "ai",
