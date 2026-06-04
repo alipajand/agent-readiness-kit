@@ -1,0 +1,63 @@
+# agent-readiness-kit — Cursor rules
+
+TypeScript Node.js CLI (`ark`) that audits repositories for AI-agent readiness.
+No external API calls, no telemetry, no auth. Fully deterministic, filesystem-only.
+
+## Before starting
+
+Read AGENTS.md and docs/ARCHITECTURE.md before any non-trivial change.
+
+## Module boundaries
+
+| Module | Responsibility |
+|--------|----------------|
+| src/audit/checks/* | Category auditors — deterministic, test-covered |
+| src/audit/auditRepo.ts | Orchestration and final score |
+| src/config/* | .arkrc loading and validation (Zod) |
+| src/generate/* | Safe starter file generation |
+| src/report/* | Terminal, JSON, Markdown formatters |
+| src/fs/* | writeFileSafe, glob helpers, existence checks |
+| tests/* | Vitest specs — one per check minimum |
+
+## Audit check rules
+
+- Return `CategoryResult` with `id`, `label`, `score`, `maxScore`, `findings`.
+- Always cap: `score = Math.min(MAX_SCORE, score)`.
+- No network calls, no randomness, no side effects in checks.
+- Use `fileExists`, `dirExists`, `findFiles` from src/fs/ — never raw `fs` in checks.
+- Finding status: `'pass'` | `'warn'` | `'fail'` only.
+
+## Safe-write
+
+Use `writeFileSafe` for all generated output. Never `fs.writeFile` directly.
+`writeFileSafe` skips existing files unless `--force` is passed — preserve this.
+
+## Testing
+
+- `pnpm test` must pass before finishing any task.
+- Every check needs: full-score case, zero-score case, at least one edge case.
+- Isolate tests in `os.tmpdir()` subdirectories; clean up in `afterEach`.
+
+## Commit style
+
+Lowercase conventional commits: `feat:`, `fix:`, `improve:`, `docs:`, `test:`, `refactor:`, `chore:`.
+No emoji. Summary ≤ 72 chars. Body explains why, not what.
+
+## Scoring reference
+
+| Category | Max |
+|----------|-----|
+| agent-instructions | 20 |
+| architecture | 15 |
+| workflow | 15 |
+| testing | 15 |
+| safety | 15 |
+| navigability | 10 |
+| prompt-assets | 10 |
+
+## Forbidden without approval
+
+- Breaking CLI command names or public flags
+- Adding telemetry, network calls, or external API integrations
+- Changing npm publish config or package name
+- Disabling tests or skipping CI

@@ -1,0 +1,36 @@
+---
+description: Safe-write semantics for file generation in src/generate/ and src/fs/
+globs: src/{generate,fs}/**/*.ts
+alwaysApply: false
+---
+
+# Safe-write semantics
+
+## Rule
+
+`writeFileSafe` skips writing if the target file already exists, **unless** `--force` is passed. Never bypass this.
+
+```ts
+// ✅ correct — respects existing files
+await writeFileSafe(targetPath, content, { force: options.force });
+
+// ❌ wrong — overwrites silently
+await fs.writeFile(targetPath, content);
+```
+
+## Return value
+
+`writeFileSafe` returns `'wrote' | 'skipped'`. Surface the result to the caller so the CLI can report what happened.
+
+## New templates
+
+When adding a new generate template:
+
+1. Add the template string in `src/generate/templates/`.
+2. Wire it through `src/generate/index.ts`.
+3. Use `writeFileSafe` for every write — never `fs.writeFile` directly.
+4. Add a test in `tests/cursorGenerate.spec.ts` (or a new spec) that asserts `'skipped'` on second invocation without `--force`.
+
+## Placeholder markers
+
+Generated starter files may include `TODO:` or `[PLACEHOLDER]` markers so users know what to customise. The audit's `placeholderDetection.ts` warns when these are still present in committed files. This is intentional — do not remove the warning logic.
