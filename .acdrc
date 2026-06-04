@@ -1,0 +1,5 @@
+{
+  "rules": {
+    "ignoreFiles": [".cursor/rules/SAFE_WRITE.mdc"]
+  }
+}

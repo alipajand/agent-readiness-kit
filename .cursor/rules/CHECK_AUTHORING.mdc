@@ -52,3 +52,7 @@ import { readJsonFile } from '../../fs/writeFileSafe.js';
 ## Test coverage
 
 Every new or changed check needs a matching spec in `tests/<name>.spec.ts`. The spec must cover at least: full-score case, zero-score case, and one partial/edge case.
+
+## Boundaries
+
+Do not add external network calls, authentication, or telemetry to any check. Ask before changing scoring weights or adding new severity levels that affect existing checks.

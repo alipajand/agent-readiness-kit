@@ -51,3 +51,7 @@ afterEach(async () => { await fs.rm(tmpDir, { recursive: true, force: true }); }
 - Assert `toBeGreaterThan(0)` or `toBeLessThan(MAX)` for partial cases.
 - Assert `findings` contain at least one entry with the expected `status`.
 - Never assert on exact message strings — they change; assert on `status` and `files`.
+
+## Boundaries
+
+Do not modify authentication, security, billing, or database logic when fixing or adding tests. Ask before removing or skipping existing test cases.
