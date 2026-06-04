@@ -1,0 +1,54 @@
+---
+description: Rules for writing and editing audit checks in src/audit/checks/
+globs: src/audit/checks/**/*.ts
+alwaysApply: false
+---
+
+# Audit check authoring
+
+## Shape
+
+Every check must return `CategoryResult` from `../../types.js`:
+
+```ts
+return {
+  id: 'my-check',           // matches the key in auditRepo.ts
+  label: 'Human label',
+  score,
+  maxScore: MAX_SCORE,
+  findings,
+};
+```
+
+## Scoring rules
+
+- Declare `const MAX_SCORE = N` at the top.
+- Always cap: `score = Math.min(MAX_SCORE, score)` before returning.
+- Never let `score` exceed `MAX_SCORE` mid-function — use `Math.min` on partial additions too when close to the cap.
+- Scores must be deterministic — no randomness, no timestamps, no network calls.
+
+## Findings
+
+Use exactly three `status` values:
+
+| Status | When to use |
+|--------|-------------|
+| `'pass'` | Signal detected and awarded points |
+| `'warn'` | Signal partially met or something improvable |
+| `'fail'` | Required signal entirely absent |
+
+Attach `files` (repo-relative paths) to every `pass` finding that relates to specific files.
+
+## Filesystem helpers
+
+Use helpers from `src/fs/` — do not call `fs` directly in checks:
+
+```ts
+import { fileExists, dirExists } from '../../fs/fileExists.js';
+import { findFiles } from '../../fs/findFiles.js';
+import { readJsonFile } from '../../fs/writeFileSafe.js';
+```
+
+## Test coverage
+
+Every new or changed check needs a matching spec in `tests/<name>.spec.ts`. The spec must cover at least: full-score case, zero-score case, and one partial/edge case.

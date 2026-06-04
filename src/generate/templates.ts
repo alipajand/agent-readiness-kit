@@ -166,6 +166,185 @@ Act as an **implementation agent**, not a product strategist.
 Include: summary, files changed, commands run, test results, limitations.
 `;
 
+export const COPILOT_INSTRUCTIONS_MD = `# GitHub Copilot instructions
+
+Act as an **implementation agent**, not a product strategist.
+
+- Read \`AGENTS.md\` and \`docs/ARCHITECTURE.md\` before making large changes.
+- Prefer minimal, focused diffs. Avoid unrelated refactors.
+- Match existing naming conventions, types, and patterns.
+- Run tests and typecheck before reporting done.
+
+## Boundaries
+
+Ask before making changes to:
+- Authentication, authorization, or session handling
+- Billing, payments, or subscription logic
+- Security policies, secrets handling, or credential storage
+- Database schema migrations in production paths
+- Breaking public API contracts or CLI commands
+
+## Final report
+
+When completing a task, include:
+
+1. Summary of changes
+2. Files created or modified
+3. Commands run (install, test, lint, build)
+4. Test results
+5. Known limitations or follow-ups
+`;
+
+export const GITHUB_CI_WORKFLOW = `name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+`;
+
+export const GITHUB_PR_TEMPLATE = `## Summary
+
+<!-- Describe what changed and why. -->
+
+## Test plan
+
+- [ ] Tests pass (\`pnpm test\`)
+- [ ] Typecheck passes (\`pnpm typecheck\`)
+- [ ] Lint passes (\`pnpm lint\`)
+- [ ] No unrelated file changes
+- [ ] Reviewed for auth/billing/security impact
+
+## Related issues
+
+<!-- Link issues: Closes #123 -->
+`;
+
+export const GITHUB_DEPENDABOT = `version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+`;
+
+export const GITHUB_ISSUE_BUG_TEMPLATE = `---
+name: Bug report
+about: Report a reproducible bug
+labels: bug
+---
+
+## Description
+
+<!-- What happened? -->
+
+## Steps to reproduce
+
+1.
+2.
+3.
+
+## Expected behavior
+
+<!-- What should have happened? -->
+
+## Environment
+
+- OS:
+- Node.js version:
+- Package version:
+`;
+
+export const GITHUB_ISSUE_FEATURE_TEMPLATE = `---
+name: Feature request
+about: Propose a new feature or improvement
+labels: enhancement
+---
+
+## Problem
+
+<!-- What problem does this feature solve? -->
+
+## Proposed solution
+
+<!-- How should it work? -->
+
+## Alternatives considered
+
+<!-- What other approaches did you consider? -->
+`;
+
+export const VSCODE_SETTINGS = `{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "files.eol": "\\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true
+}
+`;
+
+export const VSCODE_EXTENSIONS = `{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next",
+    "EditorConfig.EditorConfig",
+    "GitHub.copilot",
+    "GitHub.copilot-chat"
+  ]
+}
+`;
+
+export const VSCODE_LAUNCH = `{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug current file",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "tsx",
+      "program": "\${file}",
+      "cwd": "\${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Run tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "\${workspaceFolder}/node_modules/.bin/vitest",
+      "args": ["run"],
+      "cwd": "\${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
+}
+`;
+
 export const CURSOR_PROJECT_MDC = `---
 description: Project implementation rules for AI agents
 globs:
