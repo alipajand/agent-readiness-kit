@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { readFile } from 'node:fs/promises';
 import { findFiles } from '../../fs/findFiles.js';
 import { readJsonFile } from '../../fs/writeFileSafe.js';
 import type { CategoryResult, Finding } from '../../types.js';
@@ -9,9 +10,13 @@ type PackageJson = { scripts?: Record<string, string> };
 
 const TEST_CONFIG_PATTERNS = [
   'vitest.config.*',
+  '**/vitest.config.*',
   'jest.config.*',
+  '**/jest.config.*',
   'playwright.config.*',
+  '**/playwright.config.*',
   'cypress.config.*',
+  '**/cypress.config.*',
 ];
 
 const TEST_FILE_PATTERNS = [
@@ -109,18 +114,40 @@ export async function checkTesting(repoPath: string): Promise<CategoryResult> {
   ]);
   const vitestConfig = await findFiles(repoPath, 'vitest.config.*');
   let hasCoverage = coverageFiles.length > 0;
+  let coverageSource = '';
   if (!hasCoverage && vitestConfig.length > 0) {
     hasCoverage = true;
-    findings.push({
-      status: 'pass',
-      message: 'Coverage tooling may be configured via vitest',
-    });
+    coverageSource = 'vitest';
+  }
+  // Detect coverage configured inside jest.config.* files
+  if (!hasCoverage) {
+    const jestConfigs = await findFiles(repoPath, [
+      'jest.config.*',
+      '**/jest.config.*',
+    ]);
+    for (const f of jestConfigs) {
+      try {
+        const src = await readFile(f, 'utf8');
+        if (
+          src.includes('collectCoverage') ||
+          src.includes('coverageProvider') ||
+          src.includes('coverageThreshold') ||
+          src.includes('coverageDirectory')
+        ) {
+          hasCoverage = true;
+          coverageSource = 'jest';
+          break;
+        }
+      } catch {
+        // ignore unreadable files
+      }
+    }
   }
   if (hasCoverage) {
     score += 1;
     findings.push({
       status: 'pass',
-      message: 'Coverage configuration detected',
+      message: `Coverage configuration detected${coverageSource ? ` (${coverageSource})` : ''}`,
     });
   }
 
