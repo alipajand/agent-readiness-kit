@@ -1,0 +1,53 @@
+---
+description: Test expectations for audit checks and CLI behaviour
+globs: tests/**/*.spec.ts
+alwaysApply: false
+---
+
+# Testing standards
+
+## Framework
+
+Vitest. Run with `pnpm test`. All tests must be deterministic and filesystem-isolated.
+
+## Check specs
+
+Each audit check needs three tiers of coverage:
+
+```ts
+// 1. Full score — all signals present
+it('scores full points when all signals are present', async () => {
+  // write required files to tmp dir, run check, assert score === MAX_SCORE
+});
+
+// 2. Zero score — no signals
+it('scores 0 when no signals are present', async () => {
+  // empty tmp dir, assert score === 0
+});
+
+// 3. Partial / edge case
+it('scores partial points and emits correct findings', async () => {
+  // partial signals, assert score and finding statuses
+});
+```
+
+## Filesystem isolation
+
+Use `os.tmpdir()` + a unique subdirectory per test. Clean up in `afterEach`.
+
+```ts
+import os from 'node:os';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+let tmpDir: string;
+beforeEach(async () => { tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'ark-test-')); });
+afterEach(async () => { await fs.rm(tmpDir, { recursive: true, force: true }); });
+```
+
+## Assertions
+
+- Assert `score` exactly for full and zero cases.
+- Assert `toBeGreaterThan(0)` or `toBeLessThan(MAX)` for partial cases.
+- Assert `findings` contain at least one entry with the expected `status`.
+- Never assert on exact message strings — they change; assert on `status` and `files`.

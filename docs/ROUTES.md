@@ -4,7 +4,7 @@ The `ark` binary exposes a small command tree. All commands accept an optional `
 
 ## `ark audit [repoPath]`
 
-Run the agent-readiness audit and print a terminal summary.
+Run the agent-readiness audit and print a terminal summary. Each run is appended to `.ark-history.json` in the repo root and a score delta (`▲/▼ N pts since last run`) is shown when history exists.
 
 ```bash
 ark audit
@@ -12,26 +12,65 @@ ark audit /path/to/repo
 pnpm dev audit
 ```
 
-## `ark audit --json [repoPath]`
+### Output flags
 
-Print machine-readable JSON to stdout (score, categories, findings, missing items, recommendations). Status messages (for example report write confirmations) go to stderr so stdout stays parseable when combined with `--output`.
+| Flag | Description |
+|---|---|
+| `--json` | Machine-readable JSON to stdout |
+| `--junit` | JUnit XML to stdout (CI integration) |
+| `--sarif` | SARIF JSON to stdout (GitHub code scanning) |
+| `--output <path>` | Write `.md` or `.html` report to file |
+| `--no-history` | Skip writing to `.ark-history.json` |
 
 ```bash
 ark audit --json
-pnpm dev audit --json
+ark audit --junit
+ark audit --sarif
+ark audit --output docs/report.md
+ark audit --output docs/report.html
+ark audit --no-history
 ```
 
-## `ark audit --output <path> [repoPath]`
+## `ark check <category> [repoPath]`
 
-Write a Markdown report to `<path>` and print a short confirmation on stderr. When `--json` is not set, the terminal summary still prints on stdout after the write.
+Run a single audit category and print its findings. Useful for targeted checks without running all 13 categories.
 
-**Path behavior:** relative paths are resolved under the audited repository root. Absolute paths are written as given and can target locations outside the repo. There is no sandbox; the CLI user controls where files are written.
+Available category IDs: `agent-instructions`, `architecture`, `workflow`, `testing`, `safety`, `navigability`, `prompt-assets`, `dependencies`, `code-style`, `documentation`, `git-hygiene`, `containerization`, `ide-config`
 
 ```bash
-ark audit --output docs/agent-readiness-report.md
-pnpm dev audit --output docs/agent-readiness-report.md
-ark audit --json --output docs/agent-readiness-report.md
-ark audit --output /tmp/agent-readiness-report.md
+ark check dependencies
+ark check code-style --json
+ark check testing /path/to/repo
+```
+
+## `ark diff <before.json> <after.json>`
+
+Compare two audit JSON outputs and show score delta per category. Useful for tracking progress over time.
+
+```bash
+ark audit --json > before.json
+# ... make improvements ...
+ark audit --json > after.json
+ark diff before.json after.json
+```
+
+## `ark badge [repoPath]`
+
+Generate an SVG score badge to embed in your README. Color-coded: green (≥80), yellow-green (≥60), orange (≥40), red (<40).
+
+```bash
+ark badge                           # print SVG to stdout
+ark badge --output badge.svg        # write to file
+```
+
+## `ark fix [repoPath]`
+
+Run the audit and scaffold missing files for every failing check. Safe by default (skips existing files). Use `--force` to overwrite.
+
+```bash
+ark fix
+ark fix --force
+ark fix /path/to/repo
 ```
 
 ## `ark init [repoPath]`
@@ -69,6 +108,33 @@ Generate Claude Code starter files (`CLAUDE.md` and a task prompt template).
 ```bash
 ark generate claude
 pnpm dev generate claude
+```
+
+## `ark generate copilot [repoPath]`
+
+Generate `.github/copilot-instructions.md` with agent boundaries and implementation rules.
+
+```bash
+ark generate copilot
+pnpm dev generate copilot
+```
+
+## `ark generate github [repoPath]`
+
+Scaffold a complete `.github/` structure: CI workflow, PR template, dependabot config, and issue templates.
+
+```bash
+ark generate github
+ark generate github --force
+```
+
+## `ark generate vscode [repoPath]`
+
+Generate `.vscode/settings.json`, `.vscode/extensions.json`, and `.vscode/launch.json`.
+
+```bash
+ark generate vscode
+ark generate vscode --force
 ```
 
 ## Configuration

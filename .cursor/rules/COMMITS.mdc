@@ -1,0 +1,43 @@
+---
+description: Commit message conventions for agent-readiness-kit
+alwaysApply: false
+---
+
+# Commit messages
+
+Use lowercase conventional commits — no emoji, no sentence case.
+
+```
+<type>: <short summary>
+
+[optional body — what and why, not how]
+```
+
+## Types
+
+| Type | When |
+|------|------|
+| `feat` | New check, command, or user-visible feature |
+| `fix` | Bug fix in a check, scorer, or formatter |
+| `improve` | Tighten an existing check's detection or scoring |
+| `docs` | Documentation only |
+| `test` | Add or update tests without changing behaviour |
+| `refactor` | Restructure without behaviour change |
+| `chore` | Deps, config, CI, build |
+
+## Examples
+
+```
+feat: add data-model navigability check
+fix: cap safety score at MAX_SCORE when keyword hits overflow
+improve: detect jest coverage settings in testing check
+docs: add MIGRATIONS.md with .arkrc versioning notes
+test: add edge-case coverage for navigability monorepo paths
+```
+
+## Rules
+
+- Summary line ≤ 72 characters.
+- No trailing period.
+- Body explains *why*, not *what* (the diff shows what).
+- One logical change per commit.

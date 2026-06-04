@@ -1,13 +1,26 @@
 import pc from 'picocolors';
 import type { AuditResult } from '../types.js';
 
-export function formatTerminalReport(result: AuditResult): string {
+export function formatTerminalReport(
+  result: AuditResult,
+  scoreDelta?: number | null,
+): string {
   const lines: string[] = [];
 
   lines.push(pc.bold(`Repository: ${result.repoPath}`));
   lines.push('');
+
+  let deltaStr = '';
+  if (scoreDelta != null && scoreDelta !== 0) {
+    const sign = scoreDelta > 0 ? '+' : '';
+    const col = scoreDelta > 0 ? pc.green : pc.red;
+    deltaStr = `  ${col(`(${sign}${scoreDelta} since last run)`)}`;
+  } else if (scoreDelta === 0) {
+    deltaStr = `  ${pc.dim('(no change since last run)')}`;
+  }
+
   lines.push(
-    pc.bold(`Agent Readiness Score: ${pc.cyan(String(result.score))} / 100`),
+    pc.bold(`Agent Readiness Score: ${pc.cyan(String(result.score))} / 100${deltaStr}`),
   );
 
   lines.push('');
