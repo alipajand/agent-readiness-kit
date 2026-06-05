@@ -27,4 +27,16 @@ describe('generateCursor', () => {
       path.join('.cursor', 'rules', 'project.mdc'),
     );
   });
+
+  it('skips existing file without force', async () => {
+    await generateCursor({ repoPath });
+    const results = await generateCursor({ repoPath });
+    expect(results[0]?.status).toBe('skipped');
+  });
+
+  it('overwrites existing file with force', async () => {
+    await generateCursor({ repoPath });
+    const results = await generateCursor({ repoPath, force: true });
+    expect(results[0]?.status).toBe('overwritten');
+  });
 });
