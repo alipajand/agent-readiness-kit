@@ -25,7 +25,9 @@ describe('checkIdeConfig', () => {
     await mkdir(path.join(repoPath, '.vscode'), { recursive: true });
     const result = await checkIdeConfig(repoPath);
     expect(result.score).toBeGreaterThanOrEqual(1);
-    expect(result.findings.some((f) => f.message.includes('.vscode directory'))).toBe(true);
+    expect(
+      result.findings.some((f) => f.message.includes('.vscode directory')),
+    ).toBe(true);
   });
 
   it('awards points for .vscode/settings.json', async () => {
@@ -33,7 +35,9 @@ describe('checkIdeConfig', () => {
     await writeFile(path.join(repoPath, '.vscode', 'settings.json'), '{}');
     const result = await checkIdeConfig(repoPath);
     expect(result.score).toBeGreaterThanOrEqual(2);
-    expect(result.findings.some((f) => f.message.includes('settings.json'))).toBe(true);
+    expect(
+      result.findings.some((f) => f.message.includes('settings.json')),
+    ).toBe(true);
   });
 
   it('awards points for .vscode/extensions.json', async () => {
@@ -43,7 +47,22 @@ describe('checkIdeConfig', () => {
       '{"recommendations":[]}',
     );
     const result = await checkIdeConfig(repoPath);
-    expect(result.findings.some((f) => f.message.includes('extensions.json'))).toBe(true);
+    expect(
+      result.findings.some((f) => f.message.includes('extensions.json')),
+    ).toBe(true);
+  });
+
+  it('awards a point for a .idea directory without a contradictory warning', async () => {
+    await mkdir(path.join(repoPath, '.idea'), { recursive: true });
+    const result = await checkIdeConfig(repoPath);
+    expect(result.score).toBeGreaterThanOrEqual(1);
+    expect(result.findings.some((f) => f.message.includes('.idea'))).toBe(true);
+    expect(
+      result.findings.some(
+        (f) =>
+          f.status === 'warn' && f.message.includes('No IDE configuration'),
+      ),
+    ).toBe(false);
   });
 
   it('caps score at maxScore', async () => {

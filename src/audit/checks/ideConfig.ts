@@ -62,9 +62,10 @@ export async function checkIdeConfig(
     });
   }
 
-  // JetBrains .idea (bonus — not scored separately but noted)
+  // JetBrains .idea
   const ideaDir = path.join(repoPath, '.idea');
   if (await dirExists(ideaDir)) {
+    score += 1;
     findings.push({
       status: 'pass',
       message: '.idea directory present (JetBrains IDE config)',

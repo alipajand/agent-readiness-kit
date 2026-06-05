@@ -32,7 +32,9 @@ export async function checkGitHygiene(
   const gitignoreContent = await readFileSafe(gitignorePath);
   if (gitignoreContent) {
     const lower = gitignoreContent.toLowerCase();
-    const hits = GITIGNORE_QUALITY_PATTERNS.filter((p) => lower.includes(p));
+    const hits = GITIGNORE_QUALITY_PATTERNS.filter((p) =>
+      lower.includes(p.toLowerCase()),
+    );
     if (hits.length >= 3) {
       score += 3;
       findings.push({
@@ -44,7 +46,7 @@ export async function checkGitHygiene(
       score += 2;
       findings.push({
         status: 'warn',
-        message: `.gitignore exists but may be missing common entries (${GITIGNORE_QUALITY_PATTERNS.filter((p) => !lower.includes(p)).join(', ')})`,
+        message: `.gitignore exists but may be missing common entries (${GITIGNORE_QUALITY_PATTERNS.filter((p) => !lower.includes(p.toLowerCase())).join(', ')})`,
         files: ['.gitignore'],
       });
     } else {
@@ -131,11 +133,23 @@ export async function checkGitHygiene(
       break;
     }
   }
-  const changesetDir = await fileExists(path.join(repoPath, '.changeset', 'config.json'));
-  const semRelConfig = await findFiles(repoPath, ['.releaserc', '.releaserc.json', '.releaserc.yml', '.releaserc.yaml', '.releaserc.js']);
+  const changesetDir = await fileExists(
+    path.join(repoPath, '.changeset', 'config.json'),
+  );
+  const semRelConfig = await findFiles(repoPath, [
+    '.releaserc',
+    '.releaserc.json',
+    '.releaserc.yml',
+    '.releaserc.yaml',
+    '.releaserc.js',
+  ]);
   if (foundRelease || changesetDir || semRelConfig.length > 0) {
     score += 2;
-    const label = foundRelease ?? (changesetDir ? '.changeset/config.json' : path.relative(repoPath, semRelConfig[0]));
+    const label =
+      foundRelease ??
+      (changesetDir
+        ? '.changeset/config.json'
+        : path.relative(repoPath, semRelConfig[0]));
     findings.push({
       status: 'pass',
       message: `Release automation config found: ${label}`,
