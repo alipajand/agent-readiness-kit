@@ -60,6 +60,39 @@ describe('checkNavigability', () => {
     expect(result.score).toBe(2);
   });
 
+  it('detects OpenAPI specs and typed route modules', async () => {
+    await mkdir(path.join(repoPath, 'docs'), { recursive: true });
+    await writeFile(
+      path.join(repoPath, 'docs/openapi.yaml'),
+      'openapi: 3.0.0\n',
+    );
+    await mkdir(path.join(repoPath, 'src'), { recursive: true });
+    await writeFile(
+      path.join(repoPath, 'src/routes.ts'),
+      'export const routes = {};\n',
+    );
+
+    const result = await checkNavigability(repoPath);
+    expect(result.score).toBeGreaterThanOrEqual(3);
+    expect(result.findings.some((f) => f.status === 'pass')).toBe(true);
+  });
+
+  it('detects monorepo feature directories under apps/', async () => {
+    await mkdir(path.join(repoPath, 'apps', 'web', 'features', 'auth'), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(repoPath, 'apps', 'web', 'features', 'auth', 'index.ts'),
+      'export {};\n',
+    );
+
+    const result = await checkNavigability(repoPath);
+    expect(result.score).toBeGreaterThanOrEqual(2);
+    expect(result.findings.some((f) => f.message.includes('monorepo'))).toBe(
+      true,
+    );
+  });
+
   it('caps score at 10', async () => {
     await mkdir(path.join(repoPath, 'docs'), { recursive: true });
     await writeFile(path.join(repoPath, 'docs/ROUTES.md'), '# Routes\n');

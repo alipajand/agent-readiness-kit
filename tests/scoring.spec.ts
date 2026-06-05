@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   sumCategoryScores,
   finalizeAuditResult,
+  buildMissingAndRecommendations,
 } from '../src/audit/scoring.js';
 import type { CategoryResult } from '../src/types.js';
 
@@ -52,6 +53,82 @@ describe('scoring', () => {
       100,
     );
     expect(sumCategoryScores(categories)).toBe(100);
+  });
+
+  it('builds architecture and env recommendations from failures', () => {
+    const categories: CategoryResult[] = [
+      {
+        id: 'architecture',
+        label: 'Architecture',
+        score: 0,
+        maxScore: 15,
+        findings: [
+          {
+            status: 'fail',
+            message:
+              'No architecture doc or ADR directory (required for >10 points)',
+          },
+        ],
+      },
+      {
+        id: 'safety',
+        label: 'Safety',
+        score: 0,
+        maxScore: 15,
+        findings: [{ status: 'fail', message: '.env.example not found' }],
+      },
+    ];
+    const { missing, recommendations } = buildMissingAndRecommendations(
+      categories,
+      '/tmp/repo',
+    );
+    expect(missing).toContain('docs/ARCHITECTURE.md');
+    expect(missing).toContain('.env.example');
+    expect(recommendations.some((r) => r.includes('ARCHITECTURE'))).toBe(true);
+    expect(recommendations.some((r) => r.includes('.env.example'))).toBe(true);
+  });
+
+  it('adds prompt-assets recommendation when score is low', () => {
+    const categories: CategoryResult[] = [
+      {
+        id: 'prompt-assets',
+        label: 'Prompt assets',
+        score: 0,
+        maxScore: 10,
+        findings: [
+          {
+            status: 'fail',
+            message: 'No docs/prompts or .cursor/rules prompt assets found',
+          },
+        ],
+      },
+    ];
+    const { missing } = buildMissingAndRecommendations(categories, '/tmp/repo');
+    expect(missing).toContain('docs/prompts/');
+  });
+
+  it('flags missing typecheck script from workflow warnings', () => {
+    const categories: CategoryResult[] = [
+      {
+        id: 'workflow',
+        label: 'Workflow',
+        score: 10,
+        maxScore: 15,
+        findings: [
+          {
+            status: 'warn',
+            message:
+              'Missing typecheck script — recommend adding explicit typecheck',
+          },
+        ],
+      },
+    ];
+    const { missing, recommendations } = buildMissingAndRecommendations(
+      categories,
+      '/tmp/repo',
+    );
+    expect(missing).toContain('typecheck script');
+    expect(recommendations.some((r) => r.includes('typecheck'))).toBe(true);
   });
 
   it('builds missing AGENTS.md recommendation', () => {
