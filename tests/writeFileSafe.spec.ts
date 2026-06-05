@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtemp, rm, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { writeFileSafe } from '../src/fs/writeFileSafe.js';
+import { writeFileSafe, readJsonFile } from '../src/fs/writeFileSafe.js';
 import { relativeToRepo } from '../src/fs/findFiles.js';
 
 describe('writeFileSafe', () => {
@@ -37,6 +37,29 @@ describe('writeFileSafe', () => {
     const result = await writeFileSafe(filePath, 'updated', { force: true });
     expect(result.status).toBe('overwritten');
     expect(await readFile(filePath, 'utf8')).toBe('updated');
+  });
+
+  it('reads valid JSON files', async () => {
+    const filePath = path.join(dir, 'package.json');
+    await writeFile(
+      filePath,
+      JSON.stringify({ name: 'test-pkg', version: '1.0.0' }),
+    );
+    const data = await readJsonFile<{ name: string; version: string }>(
+      filePath,
+    );
+    expect(data?.name).toBe('test-pkg');
+    expect(data?.version).toBe('1.0.0');
+  });
+
+  it('returns null for missing JSON files', async () => {
+    expect(await readJsonFile(path.join(dir, 'missing.json'))).toBeNull();
+  });
+
+  it('returns null for invalid JSON', async () => {
+    const filePath = path.join(dir, 'bad.json');
+    await writeFile(filePath, '{ not json');
+    expect(await readJsonFile(filePath)).toBeNull();
   });
 
   it('returns absolute paths suitable for repo-relative display', async () => {

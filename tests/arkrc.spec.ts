@@ -7,6 +7,8 @@ import {
   resolveAuditRunOptions,
   resolveInitOptions,
   resolveGenerateOptions,
+  resolveRepoArg,
+  formatArkrcValidationError,
   ArkrcError,
 } from '../src/config/loadArkrc.js';
 
@@ -49,6 +51,32 @@ describe('loadArkrc', () => {
       JSON.stringify({ audit: { json: 'yes' } }),
     );
     await expect(loadArkrc(repoPath)).rejects.toBeInstanceOf(ArkrcError);
+  });
+});
+
+describe('resolveRepoArg', () => {
+  it('returns the explicit repo argument when not "."', () => {
+    expect(resolveRepoArg('./other', './configured')).toBe('./other');
+  });
+
+  it('falls back to config repoPath when arg is "."', () => {
+    expect(resolveRepoArg('.', './configured')).toBe('./configured');
+  });
+
+  it('returns "." when arg is "." and no config path', () => {
+    expect(resolveRepoArg('.')).toBe('.');
+  });
+});
+
+describe('formatArkrcValidationError', () => {
+  it('includes repo path and validation issues', () => {
+    const msg = formatArkrcValidationError(
+      '/repo',
+      'audit.json: expected boolean',
+    );
+    expect(msg).toContain('.arkrc');
+    expect(msg).toContain('/repo');
+    expect(msg).toContain('audit.json');
   });
 });
 
