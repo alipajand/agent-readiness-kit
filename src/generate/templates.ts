@@ -1,13 +1,17 @@
 export const AGENTS_MD = `# Agent instructions
 
+This file tells AI coding agents how to work safely in this repo.
+
 ## Project overview
 
-<!-- Describe what this project does, who uses it, and the primary runtime/stack. -->
+<!-- One or two sentences: what this project does, who uses it, and the main stack. -->
 
 ## Architecture boundaries
 
-<!-- List modules, services, and directories agents must not cross without approval. -->
-<!-- Link to docs/ARCHITECTURE.md when available. -->
+Keep changes focused. Do not make unrelated refactors. Match the patterns,
+naming, and types already in the code you are editing.
+
+<!-- List any directories or modules agents should not touch without approval, and link docs/ARCHITECTURE.md when it exists. -->
 
 ## Commands
 
@@ -26,29 +30,27 @@ pnpm typecheck
 pnpm test
 \`\`\`
 
-## Testing expectations
+## Validation
 
-- Run \`pnpm test\` (or the project test script) before finishing a task.
-- Add or update tests when changing behavior.
-- Do not disable tests or skip CI checks without explicit approval.
+Before finishing, run the smallest relevant validation command (usually the
+tests for the area you changed). For risky changes, also run the broader
+project checks. Add or update tests when you change behavior, and don't disable
+tests or skip CI to make a change pass.
 
-## Forbidden changes without approval
+## Ask before changing
 
-- Authentication, authorization, or session handling
-- Billing, payments, or subscription logic
-- Security policies, secrets handling, or credential storage
-- Database schema migrations in production paths
-- Breaking public API contracts
+Ask before touching auth, billing, security, production config, database
+migrations, or public API behavior. These are easy to break and hard to undo.
 
-## Final report format
+## Final report
 
-When completing a task, report:
+When you finish, report:
 
-1. Summary of changes
+1. What changed and why
 2. Files created or modified
 3. Commands run (install, test, lint, build)
 4. Test results
-5. Known limitations or follow-ups
+5. Anything you left unfinished or are unsure about
 `;
 
 export const ARCHITECTURE_MD = `# Architecture
@@ -94,22 +96,22 @@ ${objective}
 
 ${PROMPT_SECTIONS.scope}
 
-- In scope:
-- Out of scope:
+- In scope: <!-- what this task should change -->
+- Out of scope: <!-- what to leave alone -->
 
 ${PROMPT_SECTIONS.files}
 
-- List paths to read before editing.
+List the paths worth reading before editing, so changes match what is already there.
 
 ${PROMPT_SECTIONS.rules}
 
-- Follow existing patterns; no unrelated refactors.
-- Run tests and typecheck before finishing.
-- Ask before auth, billing, security, or schema changes.
+- Follow existing patterns. Keep the change focused — no unrelated refactors.
+- Run the smallest relevant validation command before finishing.
+- Ask before changing auth, billing, security, migrations, or public API behavior.
 
 ${PROMPT_SECTIONS.acceptance}
 
-- [ ] Behavior matches requirements
+- [ ] Behavior matches the requirements above
 - [ ] Tests pass
 - [ ] No unrelated file changes
 
@@ -123,7 +125,8 @@ pnpm typecheck
 
 ${PROMPT_SECTIONS.report}
 
-- Summary, files changed, commands run, test output, risks.
+When you finish: a short summary, the files you changed, the commands you ran,
+the test output, and anything left unfinished.
 `;
 }
 
@@ -154,45 +157,43 @@ export const CLAUDE_TASK_PROMPT = buildPromptTemplate(
 
 export const CLAUDE_MD = `# Claude Code instructions
 
-Act as an **implementation agent**, not a product strategist.
+This file tells Claude Code how to work safely in this repo. \`AGENTS.md\` is the
+shared source of truth — read it (and \`docs/ARCHITECTURE.md\` when it exists)
+before making large changes.
 
-- Respect \`AGENTS.md\` and \`docs/ARCHITECTURE.md\`.
-- Run tests and typecheck before reporting done.
-- Avoid unrelated refactors.
-- Ask before changes to auth, billing, security, or database schema.
+Keep changes focused. Do not make unrelated refactors. Match the existing
+naming, types, and patterns.
+
+Ask before changing auth, billing, security, production config, migrations, or
+public API behavior.
+
+Before finishing, run the smallest relevant validation command. For risky
+changes, also run the broader project checks.
 
 ## Final report
 
-Include: summary, files changed, commands run, test results, limitations.
+When you finish, share a short summary, the files you changed, the commands you
+ran, the test results, and anything you left unfinished.
 `;
 
 export const COPILOT_INSTRUCTIONS_MD = `# GitHub Copilot instructions
 
-Act as an **implementation agent**, not a product strategist.
+This file tells GitHub Copilot how to work safely in this repo. Read
+\`AGENTS.md\` and \`docs/ARCHITECTURE.md\` before making large changes.
 
-- Read \`AGENTS.md\` and \`docs/ARCHITECTURE.md\` before making large changes.
-- Prefer minimal, focused diffs. Avoid unrelated refactors.
-- Match existing naming conventions, types, and patterns.
-- Run tests and typecheck before reporting done.
+Keep changes focused and avoid unrelated refactors. Match the existing naming,
+types, and patterns in the code you touch.
 
-## Boundaries
+Ask before changing auth, billing, security, production config, migrations, or
+public API and CLI behavior.
 
-Ask before making changes to:
-- Authentication, authorization, or session handling
-- Billing, payments, or subscription logic
-- Security policies, secrets handling, or credential storage
-- Database schema migrations in production paths
-- Breaking public API contracts or CLI commands
+Before finishing, run the smallest relevant validation command. For risky
+changes, also run the broader project checks.
 
 ## Final report
 
-When completing a task, include:
-
-1. Summary of changes
-2. Files created or modified
-3. Commands run (install, test, lint, build)
-4. Test results
-5. Known limitations or follow-ups
+When you finish, include a short summary, the files you changed, the commands
+you ran, the test results, and anything left unfinished.
 `;
 
 export const GITHUB_CI_WORKFLOW = `name: CI
@@ -224,7 +225,9 @@ jobs:
 
 export const GITHUB_PR_TEMPLATE = `## Summary
 
-<!-- Describe what changed and why. -->
+What changed, and why.
+
+<!-- A couple of sentences is plenty. Link context if it helps a reviewer. -->
 
 ## Test plan
 
@@ -232,11 +235,11 @@ export const GITHUB_PR_TEMPLATE = `## Summary
 - [ ] Typecheck passes (\`pnpm typecheck\`)
 - [ ] Lint passes (\`pnpm lint\`)
 - [ ] No unrelated file changes
-- [ ] Reviewed for auth/billing/security impact
+- [ ] Checked for auth/billing/security impact
 
 ## Related issues
 
-<!-- Link issues: Closes #123 -->
+<!-- Link issues this closes, e.g. Closes #123. -->
 `;
 
 export const GITHUB_DEPENDABOT = `version: 2
@@ -256,17 +259,13 @@ labels: bug
 
 ## Description
 
-<!-- What happened? -->
+What happened, and what you expected instead.
 
 ## Steps to reproduce
 
 1.
 2.
 3.
-
-## Expected behavior
-
-<!-- What should have happened? -->
 
 ## Environment
 
@@ -283,15 +282,15 @@ labels: enhancement
 
 ## Problem
 
-<!-- What problem does this feature solve? -->
+The problem this would solve, from a user's point of view.
 
 ## Proposed solution
 
-<!-- How should it work? -->
+How you think it should work.
 
 ## Alternatives considered
 
-<!-- What other approaches did you consider? -->
+Other approaches you weighed, if any.
 `;
 
 export const VSCODE_SETTINGS = `{
@@ -346,47 +345,35 @@ export const VSCODE_LAUNCH = `{
 `;
 
 export const CURSOR_PROJECT_MDC = `---
-description: Project implementation rules for AI agents
+description: How AI agents should work safely in this repo
 globs:
 alwaysApply: true
 ---
 
 # Project agent rules
 
-## Role
+These rules tell Cursor how to work safely in this repo. \`AGENTS.md\` is the
+shared source of truth — read it and \`docs/ARCHITECTURE.md\` before large
+changes.
 
-- Act as an **implementation agent**, not a product strategist.
-- Do not make product strategy or scope decisions without human approval.
+## Working style
 
-## Architecture
-
-- Respect existing architecture and module boundaries.
-- Read AGENTS.md and docs/ARCHITECTURE.md before large changes.
-
-## Implementation
-
-- Prefer minimal, focused diffs.
-- Avoid unrelated refactors and drive-by cleanup.
-- Match existing naming, types, and patterns.
+- Keep changes focused. Avoid unrelated refactors and drive-by cleanup.
+- Match the existing naming, types, and patterns in the code you touch.
 
 ## Validation
 
-- Run relevant tests, lint, and typecheck commands before finishing.
-- Report commands run and their results.
+- Before finishing, run the smallest relevant validation command.
+- For risky changes, also run the broader tests, lint, and typecheck.
+- Report the commands you ran and their results.
 
-## Boundaries
+## Ask before changing
 
-- Ask before changes to authentication, authorization, billing, or security.
-- Ask before database schema migrations or production configuration.
-- Do not commit secrets or disable safety checks.
+- Auth, billing, security, production config, migrations, or public API behavior.
+- Never commit secrets or disable safety checks to make a change pass.
 
 ## Final report
 
-When done, include:
-
-1. Summary of what changed
-2. Files created or modified
-3. Commands run
-4. Test/lint results
-5. Known limitations
+When you finish, include a short summary, the files you changed, the commands
+you ran, the test results, and anything left unfinished.
 `;

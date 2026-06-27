@@ -42,7 +42,18 @@ Supplemental categories let repos with gaps in core categories compensate, and g
 | Tool-specific files only (no `AGENTS.md`) | 10 |
 | None | 0 |
 
-Tool-specific files: `.cursorrules`, `.cursor/rules/*.mdc`, `CLAUDE.md`, `.github/copilot-instructions.md`.
+A tool-specific file is any Cursor, Claude, or Copilot instruction file:
+
+- **Cursor:** `.cursorrules`, `.cursor/rules/*.mdc`
+- **Copilot:** `.github/copilot-instructions.md`
+- **Claude Code:** `CLAUDE.md`, `claude.md`, `.claude/CLAUDE.md`, `.claude/claude.md`, `.claude/commands/*.md`
+
+`CLAUDE.md` at the repo root is the canonical Claude Code file. The lowercase and
+nested variants are recognized because real repos use them. When only a lowercase
+`claude.md` is present (and no root `CLAUDE.md`), the audit still counts it but
+warns that you should rename it to `CLAUDE.md`. `.claude/commands/*.md` files
+count as Claude context but are not treated as a replacement for a root
+`CLAUDE.md`.
 
 ### Project architecture clarity (max 15)
 

@@ -1,3 +1,4 @@
+import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileExists } from '../../fs/fileExists.js';
 import { findFiles } from '../../fs/findFiles.js';
@@ -9,6 +10,18 @@ import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 20;
 
+// Read a directory's entry names, preserving exact case so we can tell
+// `CLAUDE.md` from `claude.md` even on case-insensitive filesystems (macOS,
+// Windows), where `fileExists` cannot distinguish the two. Returns [] when the
+// directory is missing.
+async function listEntryNames(dir: string): Promise<string[]> {
+  try {
+    return await readdir(dir);
+  } catch {
+    return [];
+  }
+}
+
 export async function checkAgentInstructions(
   repoPath: string,
 ): Promise<CategoryResult> {
@@ -17,7 +30,6 @@ export async function checkAgentInstructions(
 
   const agentsMd = path.join(repoPath, 'AGENTS.md');
   const cursorRules = path.join(repoPath, '.cursorrules');
-  const claudeMd = path.join(repoPath, 'CLAUDE.md');
   const copilot = path.join(repoPath, '.github', 'copilot-instructions.md');
 
   if (await fileExists(agentsMd)) {
@@ -57,12 +69,58 @@ export async function checkAgentInstructions(
     });
   }
 
-  if (await fileExists(claudeMd)) {
+  // Claude Code files. CLAUDE.md at the repo root is canonical; lowercase and
+  // nested `.claude/` variants are recognized because real repos use them.
+  const rootEntries = await listEntryNames(repoPath);
+  const hasRootClaude = rootEntries.includes('CLAUDE.md');
+  const hasLowercaseClaude = rootEntries.includes('claude.md');
+
+  if (hasRootClaude) {
     detected.push('CLAUDE.md');
     findings.push({
       status: 'pass',
       message: 'CLAUDE.md found',
       files: ['CLAUDE.md'],
+    });
+  } else if (hasLowercaseClaude) {
+    detected.push('claude.md');
+    findings.push({
+      status: 'pass',
+      message: 'claude.md found',
+      files: ['claude.md'],
+    });
+    findings.push({
+      status: 'warn',
+      message:
+        'Found lowercase claude.md — rename it to the canonical CLAUDE.md (or run `ark generate claude`)',
+      files: ['claude.md'],
+    });
+  }
+
+  const dotClaudeEntries = await listEntryNames(path.join(repoPath, '.claude'));
+  const dotClaudeFiles: string[] = [];
+  if (dotClaudeEntries.includes('CLAUDE.md'))
+    dotClaudeFiles.push('.claude/CLAUDE.md');
+  if (dotClaudeEntries.includes('claude.md'))
+    dotClaudeFiles.push('.claude/claude.md');
+  if (dotClaudeFiles.length > 0) {
+    detected.push(...dotClaudeFiles);
+    findings.push({
+      status: 'pass',
+      message: 'Claude-specific instructions found (.claude/)',
+      files: dotClaudeFiles,
+    });
+  }
+
+  const claudeCommands = await findFiles(repoPath, '.claude/commands/**/*.md');
+  if (claudeCommands.length > 0) {
+    const relCommands = claudeCommands.map((f) => path.relative(repoPath, f));
+    detected.push(...relCommands);
+    findings.push({
+      status: 'pass',
+      message:
+        'Claude command files found (.claude/commands/) — useful agent context, not a replacement for a root CLAUDE.md',
+      files: relCommands,
     });
   }
 

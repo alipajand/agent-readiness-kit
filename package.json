@@ -15,7 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit",
+    "lint": "eslint src",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "rm -rf dist"
@@ -23,11 +23,24 @@
   "keywords": [
     "ai",
     "agents",
+    "ai-agents",
+    "agent-readiness",
+    "claude-code",
     "cursor",
     "codex",
+    "copilot",
+    "cli",
     "audit",
-    "cli"
+    "ci"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alipajand/agent-readiness-kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alipajand/agent-readiness-kit/issues"
+  },
+  "homepage": "https://github.com/alipajand/agent-readiness-kit#readme",
   "license": "MIT",
   "engines": {
     "node": ">=18"
@@ -39,8 +52,12 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@types/node": "^25.9.1",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.5.3",
+    "typescript-eslint": "^8.60.1",
     "tsx": "^4.19.3",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8"

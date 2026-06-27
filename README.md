@@ -1,8 +1,10 @@
 # agent-readiness-kit
 
-Audit whether a software repository is ready for AI coding agents (Cursor, Codex, Claude Code, GitHub Copilot, and similar tools).
+A deterministic, local-first CLI that checks whether a repository is ready for AI coding agents — Cursor, Claude Code, Codex, GitHub Copilot, and other coding agents.
 
-The CLI inspects repo structure, configuration, documentation, scripts, tests, and agent instruction files, then produces a terminal summary, optional JSON, Markdown, or HTML report. Use `ark init`, `ark generate`, and `ark fix` to scaffold practical starter files.
+It inspects repo structure, configuration, documentation, scripts, tests, and agent instruction files, then produces a terminal summary plus optional JSON, Markdown, or HTML reports. Use `ark init`, `ark generate`, and `ark fix` to scaffold practical starter files.
+
+It runs entirely on your machine: no telemetry, no network calls, no LLM calls. It's meant to make a repo safer and easier for agents to work in, and to complement human review — not replace it.
 
 ## Install
 
@@ -61,6 +63,30 @@ pnpm dev audit
 Pass `--force` on any `init` or `generate` command to overwrite existing files.
 
 `audit --output` path behavior: relative paths are resolved under the audited repo; absolute paths can write anywhere the CLI user can write. See [SECURITY.md](SECURITY.md#file-writes).
+
+## Supported instruction files
+
+The audit recognizes the instruction and prompt files that real repos use:
+
+```text
+AGENTS.md
+CLAUDE.md
+claude.md
+.claude/CLAUDE.md
+.claude/claude.md
+.claude/commands/*.md
+.cursorrules
+.cursor/rules/*.mdc
+.github/copilot-instructions.md
+docs/prompts/**/*.md
+prompts/**/*.md
+```
+
+A few notes on Claude Code files:
+
+- `CLAUDE.md` at the repo root is the recommended Claude Code file, and `ark generate claude` always creates that canonical root file.
+- Lowercase and nested Claude files (`claude.md`, `.claude/CLAUDE.md`, `.claude/claude.md`, `.claude/commands/*.md`) are recognized too, because real repos use them. If only a lowercase `claude.md` is present, the audit suggests renaming it to `CLAUDE.md`.
+- `.claude/commands/*.md` count as useful Claude context, but they don't replace a root `CLAUDE.md`.
 
 ## Score history
 
@@ -167,12 +193,20 @@ The score is the sum of all category scores, capped at 100. The first seven cate
 
 Agent instructions scoring:
 
-- **20** — `AGENTS.md` plus at least one tool-specific file (`.cursorrules`, `.cursor/rules/*.mdc`, `CLAUDE.md`, `.github/copilot-instructions.md`)
+- **20** — `AGENTS.md` plus at least one tool-specific file (any Cursor, Claude, or Copilot file)
 - **15** — `AGENTS.md` only
 - **10** — tool-specific only
 - **0** — none
 
+Tool-specific files include `.cursorrules`, `.cursor/rules/*.mdc`, `CLAUDE.md`, `claude.md`, `.claude/CLAUDE.md`, `.claude/claude.md`, `.claude/commands/*.md`, and `.github/copilot-instructions.md`.
+
 See [docs/SCORING.md](docs/SCORING.md) for full category breakdowns.
+
+## Related tools
+
+- [agent-context-doctor](https://github.com/alipajand/agent-context-doctor) — checks whether agent instruction files are specific, safe, and usable.
+- [agent-pr-reviewer-lite](https://github.com/alipajand/agent-pr-reviewer-lite) — flags risky PR diffs before merge.
+- [agent-readiness-action](https://github.com/alipajand/agent-readiness-action) — runs readiness audits in GitHub Actions.
 
 ## Non-goals
 

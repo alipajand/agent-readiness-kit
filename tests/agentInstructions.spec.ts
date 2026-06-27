@@ -69,6 +69,111 @@ describe('checkAgentInstructions', () => {
     ).toBe(true);
   });
 
+  it('detects root CLAUDE.md as the canonical Claude file', async () => {
+    await writeFile(path.join(repoPath, 'CLAUDE.md'), '# Claude');
+    const result = await checkAgentInstructions(repoPath);
+    expect(
+      result.findings.some(
+        (f) => f.status === 'pass' && f.message === 'CLAUDE.md found',
+      ),
+    ).toBe(true);
+    expect(
+      result.findings.some((f) => /canonical CLAUDE\.md/.test(f.message)),
+    ).toBe(false);
+  });
+
+  it('detects lowercase claude.md and warns to use canonical CLAUDE.md', async () => {
+    await writeFile(path.join(repoPath, 'claude.md'), '# claude');
+    const result = await checkAgentInstructions(repoPath);
+    expect(result.score).toBe(10);
+    expect(
+      result.findings.some(
+        (f) => f.status === 'pass' && f.message === 'claude.md found',
+      ),
+    ).toBe(true);
+    expect(
+      result.findings.some(
+        (f) => f.status === 'warn' && /canonical CLAUDE\.md/.test(f.message),
+      ),
+    ).toBe(true);
+  });
+
+  it('detects .claude/CLAUDE.md as Claude-specific instructions', async () => {
+    await mkdir(path.join(repoPath, '.claude'), { recursive: true });
+    await writeFile(path.join(repoPath, '.claude', 'CLAUDE.md'), '# Claude');
+    const result = await checkAgentInstructions(repoPath);
+    expect(result.score).toBe(10);
+    expect(
+      result.findings.some(
+        (f) =>
+          f.status === 'pass' && f.files?.includes('.claude/CLAUDE.md'),
+      ),
+    ).toBe(true);
+  });
+
+  it('detects .claude/claude.md as Claude-specific instructions', async () => {
+    await mkdir(path.join(repoPath, '.claude'), { recursive: true });
+    await writeFile(path.join(repoPath, '.claude', 'claude.md'), '# claude');
+    const result = await checkAgentInstructions(repoPath);
+    expect(result.score).toBe(10);
+    expect(
+      result.findings.some(
+        (f) =>
+          f.status === 'pass' && f.files?.includes('.claude/claude.md'),
+      ),
+    ).toBe(true);
+  });
+
+  it('detects .claude/commands/*.md as Claude-related context', async () => {
+    await mkdir(path.join(repoPath, '.claude', 'commands'), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(repoPath, '.claude', 'commands', 'review.md'),
+      '# review',
+    );
+    const result = await checkAgentInstructions(repoPath);
+    expect(result.score).toBe(10);
+    expect(
+      result.findings.some(
+        (f) =>
+          f.status === 'pass' &&
+          f.files?.some((file) => file.endsWith('commands/review.md')),
+      ),
+    ).toBe(true);
+  });
+
+  it('gives full score for AGENTS.md plus .claude/commands/review.md', async () => {
+    await writeFile(
+      path.join(repoPath, 'AGENTS.md'),
+      '# Agents\nReal content.',
+    );
+    await mkdir(path.join(repoPath, '.claude', 'commands'), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(repoPath, '.claude', 'commands', 'review.md'),
+      '# review',
+    );
+    const result = await checkAgentInstructions(repoPath);
+    expect(result.score).toBe(20);
+  });
+
+  it('gives full score for AGENTS.md plus lowercase claude.md and still warns', async () => {
+    await writeFile(
+      path.join(repoPath, 'AGENTS.md'),
+      '# Agents\nReal content.',
+    );
+    await writeFile(path.join(repoPath, 'claude.md'), '# claude');
+    const result = await checkAgentInstructions(repoPath);
+    expect(result.score).toBe(20);
+    expect(
+      result.findings.some(
+        (f) => f.status === 'warn' && /canonical CLAUDE\.md/.test(f.message),
+      ),
+    ).toBe(true);
+  });
+
   it('warns when AGENTS.md contains starter placeholders', async () => {
     await writeFile(
       path.join(repoPath, 'AGENTS.md'),
