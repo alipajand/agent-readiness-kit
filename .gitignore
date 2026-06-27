@@ -4,3 +4,6 @@ docs/agent-readiness-report.md
 *.log
 .DS_Store
 .idea/
+
+# Local audit score history (generated)
+.ark-history.json
