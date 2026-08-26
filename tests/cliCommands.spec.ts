@@ -202,6 +202,19 @@ describe('ark CLI commands', () => {
       expect(stdout).toContain('/100');
     });
 
+    it('rejects a --output path outside the audited repo', async () => {
+      tmpDir = await mkdtemp(path.join(tmpdir(), 'ark-cli-badge-'));
+      const outPath = path.join(tmpDir, 'badge.svg');
+      const { stderr, code } = await runCliExpectFail([
+        'badge',
+        '--output',
+        outPath,
+        projectRoot,
+      ]);
+      expect(code).toBe(1);
+      expect(stderr).toContain('inside the audited repository');
+    });
+
     it('writes SVG to a file with --output', async () => {
       tmpDir = await mkdtemp(path.join(tmpdir(), 'ark-cli-badge-'));
       const outPath = path.join(tmpDir, 'badge.svg');
@@ -209,6 +222,7 @@ describe('ark CLI commands', () => {
         'badge',
         '--output',
         outPath,
+        '--allow-outside',
         projectRoot,
       ]);
       expect(stderr).toContain('Badge written');
@@ -234,7 +248,13 @@ describe('ark CLI commands', () => {
     it('writes HTML report when output ends with .html', async () => {
       tmpDir = await mkdtemp(path.join(tmpdir(), 'ark-cli-html-'));
       const outPath = path.join(tmpDir, 'report.html');
-      await runCli(['audit', '--output', outPath, projectRoot]);
+      await runCli([
+        'audit',
+        '--output',
+        outPath,
+        '--allow-outside',
+        projectRoot,
+      ]);
       const html = await readFile(outPath, 'utf8');
       expect(html).toContain('<!DOCTYPE html>');
       expect(html).toContain('Agent Readiness Report');

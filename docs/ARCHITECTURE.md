@@ -19,7 +19,7 @@ The CLI has no runtime server, database, or network dependencies beyond reading 
 | `src/config/*` | Loads and validates optional `.arkrc`; merges CLI flags with config |
 | `src/generate/*` | Writes starter files via `writeFileSafe` (skip unless `--force`) |
 | `src/report/*` | Formats audit output for terminal, JSON, Markdown, HTML, JUnit, SARIF, SVG badge, and diff |
-| `src/fs/*` | `writeFileSafe`, glob helpers, existence checks |
+| `src/fs/*` | `writeFileSafe`, `resolveOutputPath`, glob helpers, existence checks |
 | `tests/*` | Vitest specs for checks, reports, config, and generation |
 
 ## Audit checks

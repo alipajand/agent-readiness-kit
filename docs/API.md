@@ -118,7 +118,13 @@ Returns `currentScore - last entry score`, or `null` when history is empty.
 
 Creates parent directories as needed. Returns `{ status: 'created' | 'overwritten' | 'skipped' }`. Skips when the file exists unless `options.force === true`.
 
-Used by `init` / `generate` with fixed paths under the repo. Does not validate that `filePath` stays inside a repository root — callers are responsible for path choice. `audit --output` writes via `writeFile` in `src/cli.ts` with the same trust model: relative paths under the audited repo, absolute paths anywhere the user can write.
+Used by `init` / `generate` with fixed paths under the repo. Does not validate that `filePath` stays inside a repository root — callers are responsible for path choice. User-supplied `--output` paths go through `resolveOutputPath` first.
+
+### `resolveOutputPath(repoPath, output, options?): string`
+
+**Module:** `src/fs/resolveOutputPath.ts`
+
+Resolves a user-supplied `--output` path against the audited repository root. Relative paths are joined to `repoPath`; absolute paths are used as given. Throws `OutputPathError` when the result falls outside the repository (including via `..` segments) unless `options.allowOutside === true`. The check is lexical — symlinks inside the repo are not resolved. Used by `audit --output` and `badge --output` in `src/cli.ts`, which exit with code 1 on `OutputPathError`.
 
 ### `readJsonFile<T>(filePath): Promise<T | null>`
 

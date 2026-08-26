@@ -30,6 +30,7 @@ import {
   resolveGenerateOptions,
 } from './config/loadArkrc.js';
 import { handleArkrcError } from './config/handleArkrcError.js';
+import { resolveOutputPath, OutputPathError } from './fs/resolveOutputPath.js';
 
 function resolveRepo(cwd?: string): string {
   return path.resolve(cwd ?? process.cwd());
@@ -40,6 +41,22 @@ async function loadArkrcForRepo(repoArg: string) {
     return await loadArkrc(resolveRepo(repoArg));
   } catch (err) {
     handleArkrcError(err);
+  }
+}
+
+function resolveOutputOrExit(
+  repoPath: string,
+  output: string,
+  allowOutside: boolean,
+): string {
+  try {
+    return resolveOutputPath(repoPath, output, { allowOutside });
+  } catch (err) {
+    if (err instanceof OutputPathError) {
+      console.error(pc.red(err.message));
+      process.exit(1);
+    }
+    throw err;
   }
 }
 
@@ -73,7 +90,11 @@ program
   .option('--no-history', 'Skip writing to .ark-history.json')
   .option(
     '-o, --output <path>',
-    'Write report file (.md, .html; relative: under audited repo; absolute: as given)',
+    'Write report file (.md, .html), resolved under the audited repo',
+  )
+  .option(
+    '--allow-outside',
+    'Allow --output to write outside the audited repository',
   )
   .argument('[repoPath]', 'Repository path', '.')
   .action(
@@ -84,12 +105,16 @@ program
         junit?: boolean;
         sarif?: boolean;
         output?: string;
+        allowOutside?: boolean;
         history?: boolean;
       },
     ) => {
       const arkrc = await loadArkrcForRepo(repoPath);
       const run = resolveAuditRunOptions(repoPath, opts, arkrc);
       const resolved = resolveRepo(run.repoPathArg);
+      const outPath = run.output
+        ? resolveOutputOrExit(resolved, run.output, opts.allowOutside === true)
+        : undefined;
       const result = await auditRepo(resolved);
 
       // Score history
@@ -101,10 +126,7 @@ program
       }
 
       // File output
-      if (run.output) {
-        const outPath = path.isAbsolute(run.output)
-          ? run.output
-          : path.join(resolved, run.output);
+      if (outPath) {
         await mkdir(path.dirname(outPath), { recursive: true });
 
         let content: string;
@@ -124,7 +146,7 @@ program
       } else if (opts.sarif) {
         console.log(formatSarifReport(result));
       } else {
-        if (run.output) console.log('');
+        if (outPath) console.log('');
         console.log(formatTerminalReport(result, delta));
       }
     },
@@ -195,23 +217,35 @@ program
 program
   .command('badge')
   .description('Generate an SVG score badge')
-  .option('-o, --output <path>', 'Write badge to file (default: stdout)')
+  .option(
+    '-o, --output <path>',
+    'Write badge to file, resolved under the audited repo (default: stdout)',
+  )
+  .option(
+    '--allow-outside',
+    'Allow --output to write outside the audited repository',
+  )
   .argument('[repoPath]', 'Repository path', '.')
-  .action(async (repoPath: string, opts: { output?: string }) => {
-    const resolved = resolveRepo(repoPath);
-    const result = await auditRepo(resolved);
-    const svg = formatBadgeSvg(result);
-    if (opts.output) {
-      const outPath = path.isAbsolute(opts.output)
-        ? opts.output
-        : path.join(resolved, opts.output);
-      await mkdir(path.dirname(outPath), { recursive: true });
-      await writeFile(outPath, svg, 'utf8');
-      console.error(pc.green(`Badge written: ${outPath}`));
-    } else {
-      console.log(svg);
-    }
-  });
+  .action(
+    async (
+      repoPath: string,
+      opts: { output?: string; allowOutside?: boolean },
+    ) => {
+      const resolved = resolveRepo(repoPath);
+      const outPath = opts.output
+        ? resolveOutputOrExit(resolved, opts.output, opts.allowOutside === true)
+        : undefined;
+      const result = await auditRepo(resolved);
+      const svg = formatBadgeSvg(result);
+      if (outPath) {
+        await mkdir(path.dirname(outPath), { recursive: true });
+        await writeFile(outPath, svg, 'utf8');
+        console.error(pc.green(`Badge written: ${outPath}`));
+      } else {
+        console.log(svg);
+      }
+    },
+  );
 
 // ── fix ────────────────────────────────────────────────────────────────────
 program

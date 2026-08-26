@@ -39,7 +39,7 @@ We follow coordinated disclosure: please allow reasonable time for a fix before 
 
 - Arbitrary file read/write when running `ark init`, `ark generate`, or `ark audit --output` with untrusted paths
 - Path traversal or symlink issues in repo scanning
-- Unsafe defaults that could overwrite user files without `--force`
+- Unsafe defaults that could overwrite user files without `--force` or `--allow-outside`
 - Supply-chain issues in published npm dependencies
 
 ### Out of scope
@@ -65,16 +65,18 @@ We follow coordinated disclosure: please allow reasonable time for a fix before 
 
 `init` and `generate` write only to fixed paths under the target repository. They use `writeFileSafe`, which skips existing files unless `--force` is passed — but they do not sandbox path resolution beyond joining known relative paths to the repo root.
 
-`audit --output` is different: you supply the destination path. Behavior today:
+`audit --output` and `badge --output` take a destination path from you. Every such path is resolved against the audited repository root and must stay inside it:
 
-| `--output` path                         | Resolved as                           | Can write outside the audited repo? |
-| --------------------------------------- | ------------------------------------- | ----------------------------------- |
-| Relative (for example `docs/report.md`) | Under the **audited** repository root | No                                  |
-| Absolute (for example `/tmp/report.md`) | Used as given                         | Yes                                 |
+| `--output` path                              | Resolved as                           | Result                |
+| -------------------------------------------- | ------------------------------------- | --------------------- |
+| Relative (for example `docs/report.md`)      | Under the **audited** repository root | Written               |
+| Relative with `..` (for example `../x.md`)   | Normalised, then checked              | Rejected, exit code 1 |
+| Absolute inside the repo                     | Used as given                         | Written               |
+| Absolute elsewhere (for example `/tmp/x.md`) | Used as given                         | Rejected, exit code 1 |
 
-Relative paths with `..` segments are resolved normally and can escape the repo until stricter checks are added. Absolute paths always write wherever the OS allows the invoking user to create files.
+Rejection is enforced by `resolveOutputPath` (`src/fs/resolveOutputPath.ts`) before the audit runs, so no report or badge is produced for an escaping path. Passing `--allow-outside` disables the check and restores the old behavior — write anywhere the invoking user can write. `.arkrc` cannot set `--allow-outside`: a config file inside an audited repo can only ever redirect writes to paths within that repo.
 
-For v0.1 this is acceptable on a developer-controlled machine. Before wider npm use, treat untrusted `--output` values and `.arkrc` `audit.output` as capable of overwriting arbitrary files the user can write to.
+Remaining caveat: the check is lexical. A symlink **inside** the repository that points outside it is followed by the OS on write, so `--output` through such a symlink can still land outside the repo.
 
 ## Dependency updates
 

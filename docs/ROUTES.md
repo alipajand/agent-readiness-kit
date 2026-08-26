@@ -19,7 +19,8 @@ pnpm dev audit
 | `--json` | Machine-readable JSON to stdout |
 | `--junit` | JUnit XML to stdout (CI integration) |
 | `--sarif` | SARIF JSON to stdout (GitHub code scanning) |
-| `--output <path>` | Write `.md` or `.html` report to file |
+| `--output <path>` | Write `.md` or `.html` report to file, resolved under the audited repo |
+| `--allow-outside` | Allow `--output` to resolve outside the audited repo |
 | `--no-history` | Skip writing to `.ark-history.json` |
 
 ```bash
@@ -29,6 +30,16 @@ ark audit --sarif
 ark audit --output docs/report.md
 ark audit --output docs/report.html
 ark audit --no-history
+```
+
+`--output` is resolved against the audited repository root. A path that resolves
+outside it — `../` segments or an absolute path elsewhere — is rejected with exit
+code 1 before the audit runs, unless `--allow-outside` is passed. The same rule
+applies to `audit.output` in `.arkrc`, which cannot enable `--allow-outside`.
+
+```bash
+ark audit --output ../report.md                    # exits 1
+ark audit --output ../report.md --allow-outside    # writes
 ```
 
 ## `ark check <category> [repoPath]`
@@ -60,7 +71,8 @@ Generate an SVG score badge to embed in your README. Color-coded: green (≥80),
 
 ```bash
 ark badge                           # print SVG to stdout
-ark badge --output badge.svg        # write to file
+ark badge --output badge.svg        # write to file (under the audited repo)
+ark badge --output /tmp/badge.svg --allow-outside
 ```
 
 ## `ark fix [repoPath]`

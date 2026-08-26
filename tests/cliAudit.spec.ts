@@ -20,6 +20,18 @@ async function runAudit(
   return { stdout, stderr };
 }
 
+async function runAuditExpectFail(
+  args: string[],
+): Promise<{ stdout: string; stderr: string; code: number }> {
+  try {
+    await runAudit(args);
+    throw new Error('expected command to fail');
+  } catch (err: unknown) {
+    const e = err as { stdout?: string; stderr?: string; code?: number };
+    return { stdout: e.stdout ?? '', stderr: e.stderr ?? '', code: e.code ?? 1 };
+  }
+}
+
 describe('ark audit CLI output', () => {
   let outDir: string;
 
@@ -43,7 +55,7 @@ describe('ark audit CLI output', () => {
     outDir = await mkdtemp(path.join(tmpdir(), 'ark-cli-audit-'));
     const reportPath = path.join(outDir, 'report.md');
 
-    await runAudit(['--output', reportPath, projectRoot]);
+    await runAudit(['--output', reportPath, '--allow-outside', projectRoot]);
 
     await expect(access(reportPath)).resolves.toBeUndefined();
     const content = await readFile(reportPath, 'utf8');
@@ -58,6 +70,7 @@ describe('ark audit CLI output', () => {
       '--json',
       '--output',
       reportPath,
+      '--allow-outside',
       projectRoot,
     ]);
 
@@ -66,5 +79,39 @@ describe('ark audit CLI output', () => {
     expect(stdout).not.toContain('Report written');
     expect(stderr).toContain('Report written');
     expect(stderr).toContain(reportPath);
+  });
+
+  it('rejects an --output path that escapes the audited repo', async () => {
+    outDir = await mkdtemp(path.join(tmpdir(), 'ark-cli-audit-'));
+    const escaping = path.join(
+      path.relative(projectRoot, outDir),
+      'escaped.md',
+    );
+
+    const { stderr, code } = await runAuditExpectFail([
+      '--output',
+      escaping,
+      projectRoot,
+    ]);
+
+    expect(code).toBe(1);
+    expect(stderr).toContain('inside the audited repository');
+    expect(stderr).toContain('--allow-outside');
+    await expect(access(path.join(outDir, 'escaped.md'))).rejects.toThrow();
+  });
+
+  it('rejects an absolute --output path outside the audited repo', async () => {
+    outDir = await mkdtemp(path.join(tmpdir(), 'ark-cli-audit-'));
+    const reportPath = path.join(outDir, 'report.md');
+
+    const { stderr, code } = await runAuditExpectFail([
+      '--output',
+      reportPath,
+      projectRoot,
+    ]);
+
+    expect(code).toBe(1);
+    expect(stderr).toContain('inside the audited repository');
+    await expect(access(reportPath)).rejects.toThrow();
   });
 });

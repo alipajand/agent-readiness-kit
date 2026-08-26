@@ -47,6 +47,7 @@ pnpm dev audit
 | `ark badge` | Print SVG score badge to stdout |
 | `ark badge --output badge.svg` | Write SVG badge to file |
 | `ark fix` | Scaffold missing files for every failing check |
+| `ark audit --output ../x.md --allow-outside` | Allow an `--output` path outside the audited repo |
 
 ### Generate
 
@@ -62,7 +63,7 @@ pnpm dev audit
 
 Pass `--force` on any `init` or `generate` command to overwrite existing files.
 
-`audit --output` path behavior: relative paths are resolved under the audited repo; absolute paths can write anywhere the CLI user can write. See [SECURITY.md](SECURITY.md#file-writes).
+`--output` path behavior: paths are resolved against the audited repo root, and anything that resolves outside it — `../` segments or an absolute path elsewhere — is rejected with a non-zero exit. Pass `--allow-outside` to opt out of the check. See [SECURITY.md](SECURITY.md#file-writes).
 
 ## Supported instruction files
 
