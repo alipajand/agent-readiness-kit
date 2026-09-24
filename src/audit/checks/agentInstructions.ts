@@ -10,6 +10,31 @@ import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 20;
 
+// Standing instruction files for other agent tools. Each one counts as
+// tool-specific instructions alongside AGENTS.md.
+const OTHER_TOOL_FILES: Array<{ label: string; patterns: string[] }> = [
+  { label: 'Gemini', patterns: ['GEMINI.md', '.gemini/styleguide.md'] },
+  { label: 'Amp', patterns: ['AGENT.md'] },
+  {
+    label: 'Windsurf',
+    patterns: ['.windsurfrules', '.windsurf/rules/**/*.md'],
+  },
+  { label: 'Cline', patterns: ['.clinerules', '.clinerules/**/*.md'] },
+  { label: 'Roo Code', patterns: ['.roorules', '.roo/rules*/**/*.md'] },
+  { label: 'Kiro', patterns: ['.kiro/steering/**/*.md'] },
+  { label: 'Junie', patterns: ['.junie/guidelines.md'] },
+  {
+    label: 'Augment',
+    patterns: ['.augment-guidelines', '.augment/rules/**/*.md'],
+  },
+  { label: 'Continue', patterns: ['.continue/rules/**/*.md'] },
+  { label: 'Goose', patterns: ['.goosehints'] },
+  {
+    label: 'Copilot path-specific',
+    patterns: ['.github/instructions/**/*.instructions.md'],
+  },
+];
+
 // Read a directory's entry names, preserving exact case so we can tell
 // `CLAUDE.md` from `claude.md` even on case-insensitive filesystems (macOS,
 // Windows), where `fileExists` cannot distinguish the two. Returns [] when the
@@ -130,6 +155,19 @@ export async function checkAgentInstructions(
       status: 'pass',
       message: 'GitHub Copilot instructions found',
       files: ['.github/copilot-instructions.md'],
+    });
+  }
+
+  for (const { label, patterns } of OTHER_TOOL_FILES) {
+    const found = (await findFiles(repoPath, patterns)).map((f) =>
+      path.relative(repoPath, f),
+    );
+    if (found.length === 0) continue;
+    detected.push(...found);
+    findings.push({
+      status: 'pass',
+      message: `${label} instructions found`,
+      files: found,
     });
   }
 

@@ -56,6 +56,7 @@ pnpm dev audit
 | `ark badge --output badge.svg`               | Write SVG badge to file                                 |
 | `ark fix`                                    | Scaffold missing files for every failing check          |
 | `ark audit --output ../x.md --allow-outside` | Allow an `--output` path outside the audited repo       |
+| `ark audit --min-score 70`                   | Exit with code 1 when the score is below 70 (CI gate)   |
 
 ### Generate
 
@@ -110,7 +111,8 @@ Place a JSON file named `.arkrc` at the repository root to set defaults. CLI fla
   "audit": {
     "repoPath": ".",
     "json": false,
-    "output": "docs/agent-readiness-report.md"
+    "output": "docs/agent-readiness-report.md",
+    "minScore": 70
   },
   "init": {
     "force": false,

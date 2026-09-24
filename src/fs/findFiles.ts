@@ -24,6 +24,9 @@ export async function findFiles(
     onlyFiles: false,
     followSymbolicLinks: false,
     objectMode: true,
+    // A pattern such as `.clinerules/**/*.md` makes fast-glob scan
+    // `.clinerules` as a directory; when it is a file that throws ENOTDIR.
+    suppressErrors: true,
     ignore: options?.ignore ?? [
       '**/node_modules/**',
       '**/.git/**',

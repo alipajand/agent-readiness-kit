@@ -4,6 +4,7 @@ export const auditOptionsSchema = z.object({
   repoPath: z.string().min(1).optional(),
   json: z.boolean().optional(),
   output: z.string().min(1).optional(),
+  minScore: z.number().int().min(0).max(100).optional(),
 });
 
 export type AuditOptionsInput = z.infer<typeof auditOptionsSchema>;

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `ark audit --min-score <n>` (and `audit.minScore` in `.arkrc`) exits with code 1 when the score is below `n`, so `ark` can gate CI on its own.
+- Agent instructions now recognize Gemini (`GEMINI.md`, `.gemini/styleguide.md`), Amp (`AGENT.md`), Windsurf, Cline, Roo Code, Kiro, Junie, Augment, Continue, Goose, and Copilot path-specific instructions as tool-specific files.
+- Library entry point: `import { auditRepo, formatMarkdownReport } from 'agent-readiness-kit'` (`main`, `types`, and `exports` in `package.json`).
+
 ### Security
 
 - `audit --output` and `badge --output` paths are now resolved against the audited
