@@ -74,7 +74,10 @@ export function formatHtmlReport(result: AuditResult): string {
     result.recommendations.length === 0
       ? '<p class="none">No specific recommendations.</p>'
       : result.recommendations
-          .map((r, i) => `<li>${i + 1}. ${escHtml(r.replace(/^\d+\.\s*/, ''))}</li>`)
+          .map(
+            (r, i) =>
+              `<li>${i + 1}. ${escHtml(r.replace(/^\d+\.\s*/, ''))}</li>`,
+          )
           .join('\n');
 
   return `<!DOCTYPE html>

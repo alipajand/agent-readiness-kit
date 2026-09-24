@@ -21,8 +21,7 @@ export async function fixRepo(
   const fails = allFindings.filter((f) => f.status === 'fail');
   const messages = fails.map((f) => f.message.toLowerCase());
 
-  const needs = (keyword: string) =>
-    messages.some((m) => m.includes(keyword));
+  const needs = (keyword: string) => messages.some((m) => m.includes(keyword));
 
   // Always run init for core missing files (AGENTS.md, ARCHITECTURE.md, etc.)
   if (

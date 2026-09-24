@@ -53,7 +53,9 @@ describe('checkDocumentation', () => {
     const result = await checkDocumentation(repoPath);
     expect(result.score).toBeGreaterThanOrEqual(4);
     expect(
-      result.findings.some((f) => f.status === 'pass' && f.message.includes('README')),
+      result.findings.some(
+        (f) => f.status === 'pass' && f.message.includes('README'),
+      ),
     ).toBe(true);
   });
 
@@ -69,14 +71,18 @@ describe('checkDocumentation', () => {
     await writeFile(path.join(repoPath, 'CHANGELOG.md'), '# Changelog\n');
     const result = await checkDocumentation(repoPath);
     expect(result.score).toBeGreaterThanOrEqual(7);
-    expect(result.findings.some((f) => f.message.includes('CHANGELOG'))).toBe(true);
+    expect(result.findings.some((f) => f.message.includes('CHANGELOG'))).toBe(
+      true,
+    );
   });
 
   it('awards points for CONTRIBUTING.md', async () => {
     await writeFile(path.join(repoPath, 'README.md'), RICH_README);
     await writeFile(path.join(repoPath, 'CONTRIBUTING.md'), '# Contributing\n');
     const result = await checkDocumentation(repoPath);
-    expect(result.findings.some((f) => f.message.includes('CONTRIBUTING'))).toBe(true);
+    expect(
+      result.findings.some((f) => f.message.includes('CONTRIBUTING')),
+    ).toBe(true);
   });
 
   it('caps score at maxScore', async () => {

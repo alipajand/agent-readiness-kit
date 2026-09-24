@@ -16,6 +16,7 @@ export async function generateCursor(
   );
   const result = await writeFileSafe(filePath, CURSOR_PROJECT_MDC, {
     force: options.force,
+    root: options.repoPath,
   });
   return [result];
 }

@@ -8,57 +8,57 @@ The CLI has no runtime server, database, or network dependencies beyond reading 
 
 ## Major components
 
-| Path | Role |
-| --- | --- |
-| `src/cli.ts` | Commander entrypoint; routes `audit`, `check`, `diff`, `badge`, `fix`, `init`, and `generate` subcommands |
-| `src/audit/auditRepo.ts` | Runs all 13 category checks in parallel, exposes `auditCategory` for single-check runs, and finalizes the 100-point score |
-| `src/audit/checks/*` | Individual category auditors — 7 core + 6 supplemental (see below) |
-| `src/audit/scoring.ts` | Score aggregation, missing items, and recommendations |
-| `src/audit/history.ts` | Reads/writes `.ark-history.json`; computes score deltas |
-| `src/audit/placeholderDetection.ts` | Detects starter-template placeholders in checked-in docs |
-| `src/config/*` | Loads and validates optional `.arkrc`; merges CLI flags with config |
-| `src/generate/*` | Writes starter files via `writeFileSafe` (skip unless `--force`) |
-| `src/report/*` | Formats audit output for terminal, JSON, Markdown, HTML, JUnit, SARIF, SVG badge, and diff |
-| `src/fs/*` | `writeFileSafe`, `resolveOutputPath`, glob helpers, existence checks |
-| `tests/*` | Vitest specs for checks, reports, config, and generation |
+| Path                                | Role                                                                                                                      |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `src/cli.ts`                        | Commander entrypoint; routes `audit`, `check`, `diff`, `badge`, `fix`, `init`, and `generate` subcommands                 |
+| `src/audit/auditRepo.ts`            | Runs all 13 category checks in parallel, exposes `auditCategory` for single-check runs, and finalizes the 100-point score |
+| `src/audit/checks/*`                | Individual category auditors — 7 core + 6 supplemental (see below)                                                        |
+| `src/audit/scoring.ts`              | Score aggregation, missing items, and recommendations                                                                     |
+| `src/audit/history.ts`              | Reads/writes `.ark-history.json`; computes score deltas                                                                   |
+| `src/audit/placeholderDetection.ts` | Detects starter-template placeholders in checked-in docs                                                                  |
+| `src/config/*`                      | Loads and validates optional `.arkrc`; merges CLI flags with config                                                       |
+| `src/generate/*`                    | Writes starter files via `writeFileSafe` (skip unless `--force`)                                                          |
+| `src/report/*`                      | Formats audit output for terminal, JSON, Markdown, HTML, JUnit, SARIF, SVG badge, and diff                                |
+| `src/fs/*`                          | `writeFileSafe`, `resolveOutputPath`, glob helpers, existence checks                                                      |
+| `tests/*`                           | Vitest specs for checks, reports, config, and generation                                                                  |
 
 ## Audit checks
 
 ### Core (original 7 — 100-point budget)
 
-| Check | ID | Max |
-| --- | --- | --- |
-| `checkAgentInstructions` | `agent-instructions` | 20 |
-| `checkArchitecture` | `architecture` | 15 |
-| `checkWorkflow` | `workflow` | 15 |
-| `checkTesting` | `testing` | 15 |
-| `checkSafety` | `safety` | 15 |
-| `checkNavigability` | `navigability` | 10 |
-| `checkPromptAssets` | `prompt-assets` | 10 |
+| Check                    | ID                   | Max |
+| ------------------------ | -------------------- | --- |
+| `checkAgentInstructions` | `agent-instructions` | 20  |
+| `checkArchitecture`      | `architecture`       | 15  |
+| `checkWorkflow`          | `workflow`           | 15  |
+| `checkTesting`           | `testing`            | 15  |
+| `checkSafety`            | `safety`             | 15  |
+| `checkNavigability`      | `navigability`       | 10  |
+| `checkPromptAssets`      | `prompt-assets`      | 10  |
 
 ### Supplemental (6 additions — contribute toward 100 cap)
 
-| Check | ID | Max |
-| --- | --- | --- |
-| `checkDependencies` | `dependencies` | 10 |
-| `checkCodeStyle` | `code-style` | 10 |
-| `checkDocumentation` | `documentation` | 10 |
-| `checkGitHygiene` | `git-hygiene` | 10 |
-| `checkContainerization` | `containerization` | 5 |
-| `checkIdeConfig` | `ide-config` | 5 |
+| Check                   | ID                 | Max |
+| ----------------------- | ------------------ | --- |
+| `checkDependencies`     | `dependencies`     | 10  |
+| `checkCodeStyle`        | `code-style`       | 10  |
+| `checkDocumentation`    | `documentation`    | 10  |
+| `checkGitHygiene`       | `git-hygiene`      | 10  |
+| `checkContainerization` | `containerization` | 5   |
+| `checkIdeConfig`        | `ide-config`       | 5   |
 
 ## Report formats
 
-| Format | Trigger | Module |
-| --- | --- | --- |
-| Terminal (colored) | default | `src/report/terminalReport.ts` |
-| JSON | `--json` | `src/report/jsonReport.ts` |
-| Markdown | `--output *.md` | `src/report/markdownReport.ts` |
-| HTML | `--output *.html` | `src/report/htmlReport.ts` |
-| JUnit XML | `--junit` | `src/report/junitReport.ts` |
-| SARIF 2.1.0 | `--sarif` | `src/report/sarifReport.ts` |
-| SVG badge | `ark badge` | `src/report/badgeReport.ts` |
-| Diff (terminal) | `ark diff` | `src/report/diffReport.ts` |
+| Format             | Trigger           | Module                         |
+| ------------------ | ----------------- | ------------------------------ |
+| Terminal (colored) | default           | `src/report/terminalReport.ts` |
+| JSON               | `--json`          | `src/report/jsonReport.ts`     |
+| Markdown           | `--output *.md`   | `src/report/markdownReport.ts` |
+| HTML               | `--output *.html` | `src/report/htmlReport.ts`     |
+| JUnit XML          | `--junit`         | `src/report/junitReport.ts`    |
+| SARIF 2.1.0        | `--sarif`         | `src/report/sarifReport.ts`    |
+| SVG badge          | `ark badge`       | `src/report/badgeReport.ts`    |
+| Diff (terminal)    | `ark diff`        | `src/report/diffReport.ts`     |
 
 ## Boundaries
 

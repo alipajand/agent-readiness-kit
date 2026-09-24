@@ -18,11 +18,15 @@ export async function generateClaude(
   );
 
   results.push(
-    await writeFileSafe(claudePath, CLAUDE_MD, { force: options.force }),
+    await writeFileSafe(claudePath, CLAUDE_MD, {
+      force: options.force,
+      root: options.repoPath,
+    }),
   );
   results.push(
     await writeFileSafe(promptPath, CLAUDE_TASK_PROMPT, {
       force: options.force,
+      root: options.repoPath,
     }),
   );
 

@@ -42,5 +42,10 @@ export type AuditJson = {
 
 export type WriteResult = {
   path: string;
-  status: 'created' | 'skipped' | 'overwritten';
+  /**
+   * `refused` means the target was a symlink (with `force`) or would have
+   * landed outside the repository; nothing was written.
+   */
+  status: 'created' | 'skipped' | 'overwritten' | 'refused';
+  reason?: 'symlink' | 'outside-repo';
 };

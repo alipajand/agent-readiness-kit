@@ -1,7 +1,9 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
+import { MAX_TEXT_FILE_BYTES } from '../fs/readTextFile.js';
 import path from 'node:path';
 import { arkrcSchema, type ArkRc } from './schema.js';
 import { fileExists } from '../fs/fileExists.js';
+import { isWithin } from '../fs/safePath.js';
 
 const ARKRC_FILENAME = '.arkrc';
 
@@ -25,6 +27,13 @@ export async function loadArkrc(repoPath: string): Promise<ArkRc | null> {
     return null;
   }
 
+  const info = await stat(filePath);
+  if (!info.isFile() || info.size > MAX_TEXT_FILE_BYTES) {
+    throw new ArkrcError(
+      `${ARKRC_FILENAME} at ${filePath} must be a regular file under ${MAX_TEXT_FILE_BYTES} bytes`,
+    );
+  }
+
   let raw: unknown;
   try {
     const text = await readFile(filePath, 'utf8');
@@ -44,7 +53,43 @@ export async function loadArkrc(repoPath: string): Promise<ArkRc | null> {
     throw new ArkrcError(formatArkrcValidationError(repoPath, issues));
   }
 
+  assertConfigPathsInside(path.resolve(repoPath), parsed.data);
   return parsed.data;
+}
+
+/**
+ * `.arkrc` comes from the repository itself, so its paths must not point
+ * elsewhere: `init`/`generate` would otherwise scaffold (or, with `force`,
+ * overwrite) files in another directory, and `audit` would write its report
+ * and history there.
+ */
+function assertConfigPathsInside(root: string, config: ArkRc): void {
+  const paths: Array<[string, string | undefined]> = [
+    ['audit.repoPath', config.audit?.repoPath],
+    ['init.repoPath', config.init?.repoPath],
+    ['generate.repoPath', config.generate?.repoPath],
+  ];
+  for (const [key, value] of paths) {
+    if (value !== undefined && !isWithin(root, path.resolve(root, value))) {
+      throw new ArkrcError(
+        formatArkrcValidationError(root, `${key}: must stay inside ${root}`),
+      );
+    }
+  }
+
+  const output = config.audit?.output;
+  if (output !== undefined) {
+    const auditRoot = path.resolve(root, config.audit?.repoPath ?? '.');
+    const target = path.resolve(auditRoot, output);
+    if (target === auditRoot || !isWithin(auditRoot, target)) {
+      throw new ArkrcError(
+        formatArkrcValidationError(
+          root,
+          `audit.output: must stay inside ${auditRoot}`,
+        ),
+      );
+    }
+  }
 }
 
 export function resolveRepoArg(

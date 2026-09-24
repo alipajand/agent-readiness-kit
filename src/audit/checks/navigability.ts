@@ -17,7 +17,11 @@ const SECONDARY_NAV_DOCS: Array<{ rel: string; points: number }> = [
 ];
 
 // Glob patterns for nav docs nested in monorepo docs subdirectories
-const PRIMARY_NAV_GLOBS: Array<{ pattern: string; label: string; points: number }> = [
+const PRIMARY_NAV_GLOBS: Array<{
+  pattern: string;
+  label: string;
+  points: number;
+}> = [
   { pattern: 'docs/**/ROUTES.md', label: 'routes doc', points: 2 },
   { pattern: 'docs/**/*API*.md', label: 'API structure doc', points: 2 },
   { pattern: 'docs/**/*STRUCTURE*.md', label: 'structure doc', points: 1 },
@@ -131,12 +135,17 @@ export async function checkNavigability(
   // Monorepo-aware: check apps/*/features
   if (!foundFeatureDir) {
     // findFiles only returns files; check directory by looking for any file inside
-    const appFeatureDirMatches = await findFiles(repoPath, 'apps/*/features/**/*');
+    const appFeatureDirMatches = await findFiles(
+      repoPath,
+      'apps/*/features/**/*',
+    );
     if (appFeatureDirMatches.length > 0) {
       score += 2;
-      const exampleRel = path.dirname(
-        path.relative(repoPath, appFeatureDirMatches[0]),
-      ).split(path.sep).slice(0, 3).join(path.sep);
+      const exampleRel = path
+        .dirname(path.relative(repoPath, appFeatureDirMatches[0]))
+        .split(path.sep)
+        .slice(0, 3)
+        .join(path.sep);
       findings.push({
         status: 'pass',
         message: `Feature/module directory (monorepo): ${exampleRel}`,

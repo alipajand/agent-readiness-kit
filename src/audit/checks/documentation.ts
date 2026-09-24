@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { readTextFile } from '../../fs/readTextFile.js';
 import { fileExists } from '../../fs/fileExists.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
@@ -16,14 +16,6 @@ const README_QUALITY_KEYWORDS = [
   'overview',
 ];
 
-async function readFileSafe(filePath: string): Promise<string | null> {
-  try {
-    return await readFile(filePath, 'utf8');
-  } catch {
-    return null;
-  }
-}
-
 export async function checkDocumentation(
   repoPath: string,
 ): Promise<CategoryResult> {
@@ -32,7 +24,7 @@ export async function checkDocumentation(
 
   // README quality
   const readmePath = path.join(repoPath, 'README.md');
-  const readmeContent = await readFileSafe(readmePath);
+  const readmeContent = await readTextFile(readmePath);
   if (readmeContent) {
     const lower = readmeContent.toLowerCase();
     const keywordsFound = README_QUALITY_KEYWORDS.filter((kw) =>
@@ -58,7 +50,8 @@ export async function checkDocumentation(
       score += 1;
       findings.push({
         status: 'warn',
-        message: 'README.md is minimal — add setup, usage, and development sections',
+        message:
+          'README.md is minimal — add setup, usage, and development sections',
         files: ['README.md'],
       });
     }
@@ -67,7 +60,12 @@ export async function checkDocumentation(
   }
 
   // CHANGELOG
-  const changelogPaths = ['CHANGELOG.md', 'CHANGELOG', 'HISTORY.md', 'docs/CHANGELOG.md'];
+  const changelogPaths = [
+    'CHANGELOG.md',
+    'CHANGELOG',
+    'HISTORY.md',
+    'docs/CHANGELOG.md',
+  ];
   let foundChangelog: string | null = null;
   for (const rel of changelogPaths) {
     if (await fileExists(path.join(repoPath, rel))) {
@@ -87,7 +85,11 @@ export async function checkDocumentation(
   }
 
   // CONTRIBUTING
-  const contributingPaths = ['CONTRIBUTING.md', 'docs/CONTRIBUTING.md', '.github/CONTRIBUTING.md'];
+  const contributingPaths = [
+    'CONTRIBUTING.md',
+    'docs/CONTRIBUTING.md',
+    '.github/CONTRIBUTING.md',
+  ];
   let foundContributing: string | null = null;
   for (const rel of contributingPaths) {
     if (await fileExists(path.join(repoPath, rel))) {

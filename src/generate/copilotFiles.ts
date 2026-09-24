@@ -15,6 +15,7 @@ export async function generateCopilot(
   );
   const result = await writeFileSafe(filePath, COPILOT_INSTRUCTIONS_MD, {
     force: options.force,
+    root: options.repoPath,
   });
   return [result];
 }

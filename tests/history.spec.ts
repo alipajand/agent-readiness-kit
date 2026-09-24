@@ -14,7 +14,13 @@ function makeResult(score: number): AuditResult {
     repoPath: '/tmp/test',
     score,
     categories: [
-      { id: 'agent-instructions', label: 'Agent instructions', score, maxScore: 20, findings: [] },
+      {
+        id: 'agent-instructions',
+        label: 'Agent instructions',
+        score,
+        maxScore: 20,
+        findings: [],
+      },
     ],
     missing: [],
     recommendations: [],

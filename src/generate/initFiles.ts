@@ -28,7 +28,10 @@ export async function runInit(options: InitOptions): Promise<WriteResult[]> {
 
   for (const { rel, content } of INIT_FILES) {
     const filePath = path.join(repoPath, rel);
-    const result = await writeFileSafe(filePath, content, { force });
+    const result = await writeFileSafe(filePath, content, {
+      force,
+      root: repoPath,
+    });
     results.push(result);
   }
 
