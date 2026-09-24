@@ -41,6 +41,7 @@ function isControlCode(code: number): boolean {
 /** Escape untrusted text for Markdown prose and table cells. */
 export function escapeMarkdown(value: string): string {
   return toSafeText(value)
+    .replace(/\\/g, '\\\\')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

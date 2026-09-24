@@ -61,7 +61,6 @@ describe('ark audit CLI output', () => {
 
     await runAudit(['--output', reportPath, '--allow-outside', projectRoot]);
 
-    await expect(access(reportPath)).resolves.toBeUndefined();
     const content = await readFile(reportPath, 'utf8');
     expect(content).toContain('# Agent Readiness Report');
   });
