@@ -332,3 +332,65 @@ describe('ark CLI', () => {
     expect(await readFile(target, 'utf8')).toBe('keep');
   });
 });
+
+describe('ark audit --min-score', () => {
+  it('exits 1 when the score is below the minimum', async () => {
+    const { code, stderr } = await runCli([
+      'audit',
+      repo,
+      '--no-history',
+      '--min-score',
+      '90',
+    ]);
+    expect(code).toBe(1);
+    expect(stderr).toContain('is below --min-score 90');
+  });
+
+  it('exits 0 when the score meets the minimum', async () => {
+    const { code } = await runCli([
+      'audit',
+      repo,
+      '--no-history',
+      '--min-score',
+      '0',
+    ]);
+    expect(code).toBe(0);
+  });
+
+  it('rejects an invalid minimum', async () => {
+    const { code, stderr } = await runCli([
+      'audit',
+      repo,
+      '--min-score',
+      '101',
+    ]);
+    expect(code).toBe(1);
+    expect(stderr).toContain('integer from 0 to 100');
+  });
+
+  it('reads audit.minScore from .arkrc', async () => {
+    await writeFile(
+      path.join(repo, '.arkrc'),
+      JSON.stringify({ audit: { minScore: 95 } }),
+    );
+    const { code } = await runCli(['audit', repo, '--no-history']);
+    expect(code).toBe(1);
+  });
+});
+
+describe('library entry point', () => {
+  it('exports the audit engine and formatters', async () => {
+    const api = await import('../src/index.js');
+    expect(typeof api.auditRepo).toBe('function');
+    expect(typeof api.formatMarkdownReport).toBe('function');
+    expect(api.ALL_CHECK_IDS).toContain('agent-instructions');
+  });
+});
+
+describe('findFiles with a file where a directory pattern expects one', () => {
+  it('does not throw when .clinerules is a file', async () => {
+    await writeFile(path.join(repo, '.clinerules'), 'rules');
+    const found = await findFiles(repo, ['.clinerules', '.clinerules/**/*.md']);
+    expect(found.map((f) => path.basename(f))).toEqual(['.clinerules']);
+  });
+});

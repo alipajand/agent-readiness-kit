@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { Command } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import path from 'node:path';
 import { lstat, mkdir, readFile } from 'node:fs/promises';
 import pc from 'picocolors';
@@ -88,6 +88,14 @@ async function writeOutputFile(
   await writeFileNoFollow(outPath, content);
 }
 
+function parseMinScore(value: string): number {
+  const score = Number(value);
+  if (!Number.isInteger(score) || score < 0 || score > 100) {
+    throw new InvalidArgumentError('Use an integer from 0 to 100.');
+  }
+  return score;
+}
+
 function printWriteResults(repoPath: string, results: WriteResult[]): void {
   for (const r of results) {
     const rel = toSafeText(path.relative(repoPath, r.path));
@@ -130,6 +138,11 @@ program
     '--allow-outside',
     'Allow --output to write outside the audited repository',
   )
+  .option(
+    '--min-score <score>',
+    'Exit with code 1 when the score is below this value (0-100)',
+    parseMinScore,
+  )
   .argument('[repoPath]', 'Repository path', '.')
   .action(
     async (
@@ -141,6 +154,7 @@ program
         output?: string;
         allowOutside?: boolean;
         history?: boolean;
+        minScore?: number;
       },
     ) => {
       const arkrc = await loadArkrcForRepo(repoPath);
@@ -188,6 +202,15 @@ program
       } else {
         if (outPath) console.log('');
         console.log(formatTerminalReport(result, delta));
+      }
+
+      if (run.minScore !== undefined && result.score < run.minScore) {
+        console.error(
+          pc.red(
+            `Agent readiness score ${result.score} is below --min-score ${run.minScore}.`,
+          ),
+        );
+        process.exitCode = 1;
       }
     },
   );

@@ -42,11 +42,21 @@ Supplemental categories let repos with gaps in core categories compensate, and g
 | Tool-specific files only (no `AGENTS.md`)     |    10 |
 | None                                          |     0 |
 
-A tool-specific file is any Cursor, Claude, or Copilot instruction file:
+A tool-specific file is any instruction file for a specific agent tool:
 
 - **Cursor:** `.cursorrules`, `.cursor/rules/*.mdc`
-- **Copilot:** `.github/copilot-instructions.md`
+- **Copilot:** `.github/copilot-instructions.md`, `.github/instructions/**/*.instructions.md`
 - **Claude Code:** `CLAUDE.md`, `claude.md`, `.claude/CLAUDE.md`, `.claude/claude.md`, `.claude/commands/*.md`
+- **Gemini:** `GEMINI.md`, `.gemini/styleguide.md`
+- **Amp:** `AGENT.md`
+- **Windsurf:** `.windsurfrules`, `.windsurf/rules/**/*.md`
+- **Cline:** `.clinerules` (file or directory of `*.md`)
+- **Roo Code:** `.roorules`, `.roo/rules*/**/*.md`
+- **Kiro:** `.kiro/steering/**/*.md`
+- **Junie:** `.junie/guidelines.md`
+- **Augment:** `.augment-guidelines`, `.augment/rules/**/*.md`
+- **Continue:** `.continue/rules/**/*.md`
+- **Goose:** `.goosehints`
 
 `CLAUDE.md` at the repo root is the canonical Claude Code file. The lowercase and
 nested variants are recognized because real repos use them. When only a lowercase

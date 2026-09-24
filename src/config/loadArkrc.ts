@@ -104,14 +104,15 @@ export function resolveRepoArg(
 
 export function resolveAuditRunOptions(
   repoArg: string,
-  cli: { json?: boolean; output?: string },
+  cli: { json?: boolean; output?: string; minScore?: number },
   arkrc: ArkRc | null,
-): { repoPathArg: string; json: boolean; output?: string } {
+): { repoPathArg: string; json: boolean; output?: string; minScore?: number } {
   const audit = arkrc?.audit;
   return {
     repoPathArg: resolveRepoArg(repoArg, audit?.repoPath),
     json: cli.json ?? audit?.json ?? false,
     output: cli.output ?? audit?.output,
+    minScore: cli.minScore ?? audit?.minScore,
   };
 }
 
