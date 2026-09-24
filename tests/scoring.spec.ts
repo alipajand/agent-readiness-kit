@@ -148,3 +148,45 @@ describe('scoring', () => {
     );
   });
 });
+
+describe('agent-instructions missing items', () => {
+  function agentCategory(
+    score: number,
+    findings: CategoryResult['findings'],
+  ): CategoryResult {
+    return {
+      id: 'agent-instructions',
+      label: 'Agent instructions',
+      score,
+      maxScore: 20,
+      findings,
+    };
+  }
+
+  it('does not list AGENTS.md as missing when it exists', () => {
+    const { missing, recommendations } = buildMissingAndRecommendations(
+      [
+        agentCategory(15, [
+          { status: 'pass', message: 'AGENTS.md found' },
+          {
+            status: 'warn',
+            message:
+              'AGENTS.md only — add tool-specific instructions for full score',
+          },
+        ]),
+      ],
+      '/repo',
+    );
+    expect(missing).not.toContain('AGENTS.md');
+    expect(missing).toContain('tool-specific agent instructions');
+    expect(recommendations.join(' ')).toContain('CLAUDE.md');
+  });
+
+  it('lists AGENTS.md when the check reports it missing', () => {
+    const { missing } = buildMissingAndRecommendations(
+      [agentCategory(0, [{ status: 'fail', message: 'AGENTS.md not found' }])],
+      '/repo',
+    );
+    expect(missing).toContain('AGENTS.md');
+  });
+});

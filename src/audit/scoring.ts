@@ -58,9 +58,20 @@ export function buildMissingAndRecommendations(
   }
 
   const agentCat = categories.find((c) => c.id === 'agent-instructions');
-  if (agentCat && agentCat.score < 20) {
-    if (!missing.includes('AGENTS.md')) {
+  if (agentCat && agentCat.score < agentCat.maxScore) {
+    const agentsMissing = agentCat.findings.some(
+      (f) => f.status === 'fail' && f.message === 'AGENTS.md not found',
+    );
+    const toolSpecificMissing = agentCat.findings.some((f) =>
+      f.message.includes('add tool-specific instructions'),
+    );
+    if (agentsMissing) {
       add('AGENTS.md', 'Add AGENTS.md');
+    } else if (toolSpecificMissing) {
+      add(
+        'tool-specific agent instructions',
+        'Add tool-specific instructions (CLAUDE.md, .cursor/rules/, or .github/copilot-instructions.md) alongside AGENTS.md',
+      );
     }
   }
 
