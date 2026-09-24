@@ -12,7 +12,12 @@ export type DiffResult = {
     after: number;
     delta: number;
   }>;
-  newCategories: Array<{ id: string; label: string; score: number; maxScore: number }>;
+  newCategories: Array<{
+    id: string;
+    label: string;
+    score: number;
+    maxScore: number;
+  }>;
   removedCategories: Array<{ id: string; label: string }>;
 };
 
@@ -36,7 +41,12 @@ export function computeDiff(before: AuditJson, after: AuditJson): DiffResult {
 
   const newCategories = after.categories
     .filter((c) => !beforeMap.has(c.id))
-    .map((c) => ({ id: c.id, label: c.label, score: c.score, maxScore: c.maxScore }));
+    .map((c) => ({
+      id: c.id,
+      label: c.label,
+      score: c.score,
+      maxScore: c.maxScore,
+    }));
 
   const removedCategories = before.categories
     .filter((c) => !afterMap.has(c.id))
@@ -60,11 +70,7 @@ export function formatDiffReport(diff: DiffResult): string {
 
   const deltaSign = diff.scoreDelta > 0 ? '+' : '';
   const deltaColor =
-    diff.scoreDelta > 0
-      ? pc.green
-      : diff.scoreDelta < 0
-        ? pc.red
-        : pc.dim;
+    diff.scoreDelta > 0 ? pc.green : diff.scoreDelta < 0 ? pc.red : pc.dim;
 
   lines.push(
     `  Score: ${pc.cyan(String(diff.before.score))} → ${pc.cyan(String(diff.after.score))}  (${deltaColor(`${deltaSign}${diff.scoreDelta}`)})`,

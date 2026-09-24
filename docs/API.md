@@ -136,27 +136,27 @@ Reads and parses JSON; returns `null` on missing or invalid files.
 
 All generators accept `{ repoPath: string; force?: boolean }` and return `Promise<WriteResult[]>`.
 
-| Function | Module | Writes |
-| --- | --- | --- |
-| `runInit` | `src/generate/initFiles.ts` | `AGENTS.md`, architecture doc, prompt templates |
-| `generateCursor` | `src/generate/cursorFiles.ts` | `.cursor/rules/project.mdc` |
-| `generateCodex` | `src/generate/codexFiles.ts` | Codex `AGENTS.md` and task prompt |
-| `generateClaude` | `src/generate/claudeFiles.ts` | `CLAUDE.md` and task prompt |
-| `generateCopilot` | `src/generate/copilotFiles.ts` | `.github/copilot-instructions.md` |
-| `generateGithub` | `src/generate/githubFiles.ts` | CI workflow, PR template, dependabot config, issue templates |
-| `generateVscode` | `src/generate/vscodeFiles.ts` | `.vscode/settings.json`, `extensions.json`, `launch.json` |
-| `fixRepo` | `src/generate/fixRepo.ts` | Scaffolds whichever files correspond to failing audit checks |
+| Function          | Module                         | Writes                                                       |
+| ----------------- | ------------------------------ | ------------------------------------------------------------ |
+| `runInit`         | `src/generate/initFiles.ts`    | `AGENTS.md`, architecture doc, prompt templates              |
+| `generateCursor`  | `src/generate/cursorFiles.ts`  | `.cursor/rules/project.mdc`                                  |
+| `generateCodex`   | `src/generate/codexFiles.ts`   | Codex `AGENTS.md` and task prompt                            |
+| `generateClaude`  | `src/generate/claudeFiles.ts`  | `CLAUDE.md` and task prompt                                  |
+| `generateCopilot` | `src/generate/copilotFiles.ts` | `.github/copilot-instructions.md`                            |
+| `generateGithub`  | `src/generate/githubFiles.ts`  | CI workflow, PR template, dependabot config, issue templates |
+| `generateVscode`  | `src/generate/vscodeFiles.ts`  | `.vscode/settings.json`, `extensions.json`, `launch.json`    |
+| `fixRepo`         | `src/generate/fixRepo.ts`      | Scaffolds whichever files correspond to failing audit checks |
 
 Templates live in `src/generate/templates.ts` and intentionally retain starter placeholders for downstream repos.
 
 ## Config
 
-| Function | Module | Purpose |
-| --- | --- | --- |
-| `loadArkrc(repoPath)` | `src/config/loadArkrc.ts` | Load optional `.arkrc` from `repoPath` |
-| `resolveAuditRunOptions(...)` | `src/config/loadArkrc.ts` | Merge audit CLI flags with config |
-| `resolveInitOptions(...)` | `src/config/loadArkrc.ts` | Merge init options |
-| `resolveGenerateOptions(...)` | `src/config/loadArkrc.ts` | Merge generate options |
+| Function                      | Module                    | Purpose                                |
+| ----------------------------- | ------------------------- | -------------------------------------- |
+| `loadArkrc(repoPath)`         | `src/config/loadArkrc.ts` | Load optional `.arkrc` from `repoPath` |
+| `resolveAuditRunOptions(...)` | `src/config/loadArkrc.ts` | Merge audit CLI flags with config      |
+| `resolveInitOptions(...)`     | `src/config/loadArkrc.ts` | Merge init options                     |
+| `resolveGenerateOptions(...)` | `src/config/loadArkrc.ts` | Merge generate options                 |
 
 **Load order (audit):** `loadArkrc(resolveRepo(cliRepoArg))` runs first; `resolveAuditRunOptions(cliRepoArg, flags, arkrc)` runs second. The CLI `[repoPath]` selects which `.arkrc` file to read. `audit.repoPath` in that file redirects the audit target only when `[repoPath]` is the default `.`; an explicit CLI path overrides `audit.repoPath` and is also where config is loaded from.
 

@@ -14,14 +14,14 @@ pnpm dev audit
 
 ### Output flags
 
-| Flag | Description |
-|---|---|
-| `--json` | Machine-readable JSON to stdout |
-| `--junit` | JUnit XML to stdout (CI integration) |
-| `--sarif` | SARIF JSON to stdout (GitHub code scanning) |
+| Flag              | Description                                                            |
+| ----------------- | ---------------------------------------------------------------------- |
+| `--json`          | Machine-readable JSON to stdout                                        |
+| `--junit`         | JUnit XML to stdout (CI integration)                                   |
+| `--sarif`         | SARIF JSON to stdout (GitHub code scanning)                            |
 | `--output <path>` | Write `.md` or `.html` report to file, resolved under the audited repo |
-| `--allow-outside` | Allow `--output` to resolve outside the audited repo |
-| `--no-history` | Skip writing to `.ark-history.json` |
+| `--allow-outside` | Allow `--output` to resolve outside the audited repo                   |
+| `--no-history`    | Skip writing to `.ark-history.json`                                    |
 
 ```bash
 ark audit --json

@@ -33,19 +33,22 @@ export const ALL_CHECK_IDS = [
 
 export type CheckId = (typeof ALL_CHECK_IDS)[number];
 
-const CHECK_MAP: Record<CheckId, (repoPath: string) => Promise<CategoryResult>> = {
+const CHECK_MAP: Record<
+  CheckId,
+  (repoPath: string) => Promise<CategoryResult>
+> = {
   'agent-instructions': checkAgentInstructions,
-  'architecture': checkArchitecture,
-  'workflow': checkWorkflow,
-  'testing': checkTesting,
-  'safety': checkSafety,
-  'navigability': checkNavigability,
+  architecture: checkArchitecture,
+  workflow: checkWorkflow,
+  testing: checkTesting,
+  safety: checkSafety,
+  navigability: checkNavigability,
   'prompt-assets': checkPromptAssets,
-  'dependencies': checkDependencies,
+  dependencies: checkDependencies,
   'code-style': checkCodeStyle,
-  'documentation': checkDocumentation,
+  documentation: checkDocumentation,
   'git-hygiene': checkGitHygiene,
-  'containerization': checkContainerization,
+  containerization: checkContainerization,
   'ide-config': checkIdeConfig,
 };
 

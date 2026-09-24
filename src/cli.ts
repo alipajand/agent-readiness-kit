@@ -155,7 +155,9 @@ program
 // ── check ──────────────────────────────────────────────────────────────────
 program
   .command('check')
-  .description(`Run a single audit category. Available: ${ALL_CHECK_IDS.join(', ')}`)
+  .description(
+    `Run a single audit category. Available: ${ALL_CHECK_IDS.join(', ')}`,
+  )
   .option('--json', 'Output machine-readable JSON')
   .argument('<category>', 'Category ID to run')
   .argument('[repoPath]', 'Repository path', '.')
@@ -164,9 +166,7 @@ program
       const resolved = resolveRepo(repoPath);
       const cat = await auditCategory(resolved, category);
       if (!cat) {
-        console.error(
-          pc.red(`Unknown category: ${category}`),
-        );
+        console.error(pc.red(`Unknown category: ${category}`));
         console.error(`Available: ${ALL_CHECK_IDS.join(', ')}`);
         process.exit(1);
       }
@@ -267,10 +267,17 @@ program
       return;
     }
 
-    console.log(pc.yellow(`Found ${failCount} failing check(s). Scaffolding missing files…`));
+    console.log(
+      pc.yellow(
+        `Found ${failCount} failing check(s). Scaffolding missing files…`,
+      ),
+    );
     console.log('');
 
-    const results = await fixRepo(result, { repoPath: resolved, force: opts.force });
+    const results = await fixRepo(result, {
+      repoPath: resolved,
+      force: opts.force,
+    });
     printWriteResults(resolved, results);
 
     if (results.every((r) => r.status === 'skipped')) {
@@ -363,7 +370,9 @@ generate
 
 generate
   .command('github')
-  .description('Generate .github/ structure (CI workflow, PR template, dependabot, issue templates)')
+  .description(
+    'Generate .github/ structure (CI workflow, PR template, dependabot, issue templates)',
+  )
   .option('-f, --force', 'Overwrite existing files')
   .argument('[repoPath]', 'Repository path', '.')
   .action(async (repoPath: string, opts: { force?: boolean }) => {
@@ -378,7 +387,9 @@ generate
 
 generate
   .command('vscode')
-  .description('Generate .vscode/ editor configuration (settings, extensions, launch)')
+  .description(
+    'Generate .vscode/ editor configuration (settings, extensions, launch)',
+  )
   .option('-f, --force', 'Overwrite existing files')
   .argument('[repoPath]', 'Repository path', '.')
   .action(async (repoPath: string, opts: { force?: boolean }) => {

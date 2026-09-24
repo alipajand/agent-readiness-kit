@@ -38,7 +38,11 @@ export async function checkDependencies(
       files: [foundLockfile],
     });
   } else {
-    findings.push({ status: 'fail', message: 'No lockfile found (pnpm-lock.yaml / package-lock.json / yarn.lock)' });
+    findings.push({
+      status: 'fail',
+      message:
+        'No lockfile found (pnpm-lock.yaml / package-lock.json / yarn.lock)',
+    });
   }
 
   // Node version pin
@@ -50,7 +54,9 @@ export async function checkDependencies(
       break;
     }
   }
-  const pkg = await readJsonFile<PackageJson>(path.join(repoPath, 'package.json'));
+  const pkg = await readJsonFile<PackageJson>(
+    path.join(repoPath, 'package.json'),
+  );
   const hasEngines = pkg?.engines && Object.keys(pkg.engines).length > 0;
   if (foundNodePin) {
     score += 2;
@@ -69,15 +75,13 @@ export async function checkDependencies(
   } else {
     findings.push({
       status: 'warn',
-      message: 'No Node.js version pin (.nvmrc, .node-version, or engines in package.json)',
+      message:
+        'No Node.js version pin (.nvmrc, .node-version, or engines in package.json)',
     });
   }
 
   // Dependabot or Renovate
-  const depbotPaths = [
-    '.github/dependabot.yml',
-    '.github/dependabot.yaml',
-  ];
+  const depbotPaths = ['.github/dependabot.yml', '.github/dependabot.yaml'];
   let foundDepbot: string | null = null;
   for (const rel of depbotPaths) {
     if (await fileExists(path.join(repoPath, rel))) {
@@ -108,7 +112,8 @@ export async function checkDependencies(
   } else {
     findings.push({
       status: 'warn',
-      message: 'No automated dependency update config (dependabot.yml or renovate.json)',
+      message:
+        'No automated dependency update config (dependabot.yml or renovate.json)',
     });
   }
 

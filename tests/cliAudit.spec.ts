@@ -28,7 +28,11 @@ async function runAuditExpectFail(
     throw new Error('expected command to fail');
   } catch (err: unknown) {
     const e = err as { stdout?: string; stderr?: string; code?: number };
-    return { stdout: e.stdout ?? '', stderr: e.stderr ?? '', code: e.code ?? 1 };
+    return {
+      stdout: e.stdout ?? '',
+      stderr: e.stderr ?? '',
+      code: e.code ?? 1,
+    };
   }
 }
 

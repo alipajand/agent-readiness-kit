@@ -8,7 +8,12 @@ const MAX_HISTORY_ENTRIES = 20;
 export type HistoryEntry = {
   timestamp: string;
   score: number;
-  categories: Array<{ id: string; label: string; score: number; maxScore: number }>;
+  categories: Array<{
+    id: string;
+    label: string;
+    score: number;
+    maxScore: number;
+  }>;
 };
 
 export type AuditHistory = {

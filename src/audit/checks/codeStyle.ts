@@ -117,7 +117,8 @@ export async function checkCodeStyle(
   if (score === 0) {
     findings.push({
       status: 'fail',
-      message: 'No code style tooling detected (ESLint / Prettier / Biome / .editorconfig)',
+      message:
+        'No code style tooling detected (ESLint / Prettier / Biome / .editorconfig)',
     });
   }
 

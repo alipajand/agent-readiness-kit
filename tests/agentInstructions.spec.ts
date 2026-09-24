@@ -105,8 +105,7 @@ describe('checkAgentInstructions', () => {
     expect(result.score).toBe(10);
     expect(
       result.findings.some(
-        (f) =>
-          f.status === 'pass' && f.files?.includes('.claude/CLAUDE.md'),
+        (f) => f.status === 'pass' && f.files?.includes('.claude/CLAUDE.md'),
       ),
     ).toBe(true);
   });
@@ -118,8 +117,7 @@ describe('checkAgentInstructions', () => {
     expect(result.score).toBe(10);
     expect(
       result.findings.some(
-        (f) =>
-          f.status === 'pass' && f.files?.includes('.claude/claude.md'),
+        (f) => f.status === 'pass' && f.files?.includes('.claude/claude.md'),
       ),
     ).toBe(true);
   });

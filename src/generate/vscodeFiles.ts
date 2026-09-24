@@ -16,7 +16,10 @@ export async function generateVscode(
 
   const files: Array<{ rel: string; content: string }> = [
     { rel: path.join('.vscode', 'settings.json'), content: VSCODE_SETTINGS },
-    { rel: path.join('.vscode', 'extensions.json'), content: VSCODE_EXTENSIONS },
+    {
+      rel: path.join('.vscode', 'extensions.json'),
+      content: VSCODE_EXTENSIONS,
+    },
     { rel: path.join('.vscode', 'launch.json'), content: VSCODE_LAUNCH },
   ];
 

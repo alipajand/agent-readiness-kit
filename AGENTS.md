@@ -12,15 +12,15 @@ Use `ark init`, `ark generate`, and `ark fix` to scaffold starter agent files. G
 
 Read `docs/ARCHITECTURE.md` before large changes. Respect module boundaries:
 
-| Module              | Responsibility                                                      |
-| ------------------- | ------------------------------------------------------------------- |
-| `src/cli.ts`        | Commander command routing                                           |
-| `src/audit/*`       | Audit orchestration, 13 category checks, and score history          |
-| `src/config/*`      | `.arkrc` loading and validation                                     |
-| `src/generate/*`    | Safe starter file generation (init, cursor, codex, claude, copilot, github, vscode, fix) |
-| `src/report/*`      | Terminal, JSON, Markdown, HTML, JUnit, SARIF, badge, and diff formatters |
-| `src/fs/*`          | Filesystem helpers (`writeFileSafe`, glob search)                   |
-| `tests/*`           | Vitest coverage for checks and CLI behavior                         |
+| Module           | Responsibility                                                                           |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| `src/cli.ts`     | Commander command routing                                                                |
+| `src/audit/*`    | Audit orchestration, 13 category checks, and score history                               |
+| `src/config/*`   | `.arkrc` loading and validation                                                          |
+| `src/generate/*` | Safe starter file generation (init, cursor, codex, claude, copilot, github, vscode, fix) |
+| `src/report/*`   | Terminal, JSON, Markdown, HTML, JUnit, SARIF, badge, and diff formatters                 |
+| `src/fs/*`       | Filesystem helpers (`writeFileSafe`, glob search)                                        |
+| `tests/*`        | Vitest coverage for checks and CLI behavior                                              |
 
 **Agent-editable areas:** audit checks, report formatting, generate templates, filesystem helpers, tests, and documentation under `docs/`.
 

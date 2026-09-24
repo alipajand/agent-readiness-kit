@@ -56,7 +56,12 @@ Renaming a check ID is a breaking change for consumers who pin `checks` in `.ark
       "timestamp": "2026-06-04T17:00:00.000Z",
       "score": 85,
       "categories": [
-        { "id": "agent-instructions", "label": "Agent instructions", "score": 20, "maxScore": 20 }
+        {
+          "id": "agent-instructions",
+          "label": "Agent instructions",
+          "score": 20,
+          "maxScore": 20
+        }
       ]
     }
   ]

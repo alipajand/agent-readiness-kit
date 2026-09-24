@@ -20,7 +20,9 @@ export function formatTerminalReport(
   }
 
   lines.push(
-    pc.bold(`Agent Readiness Score: ${pc.cyan(String(result.score))} / 100${deltaStr}`),
+    pc.bold(
+      `Agent Readiness Score: ${pc.cyan(String(result.score))} / 100${deltaStr}`,
+    ),
   );
 
   lines.push('');

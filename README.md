@@ -33,33 +33,33 @@ pnpm dev audit
 
 ### Audit
 
-| Command | Description |
-| --- | --- |
-| `ark audit` | Run audit, print terminal summary, record score history |
-| `ark audit --json` | Machine-readable JSON on stdout |
-| `ark audit --junit` | JUnit XML on stdout (CI integration) |
-| `ark audit --sarif` | SARIF 2.1.0 JSON on stdout (GitHub code scanning) |
-| `ark audit --output report.md` | Write Markdown report to file |
-| `ark audit --output report.html` | Write rich HTML report to file |
-| `ark audit --no-history` | Skip writing to `.ark-history.json` |
-| `ark check <category>` | Run a single audit category by ID |
-| `ark diff before.json after.json` | Compare two audit JSON outputs and show score delta |
-| `ark badge` | Print SVG score badge to stdout |
-| `ark badge --output badge.svg` | Write SVG badge to file |
-| `ark fix` | Scaffold missing files for every failing check |
-| `ark audit --output ../x.md --allow-outside` | Allow an `--output` path outside the audited repo |
+| Command                                      | Description                                             |
+| -------------------------------------------- | ------------------------------------------------------- |
+| `ark audit`                                  | Run audit, print terminal summary, record score history |
+| `ark audit --json`                           | Machine-readable JSON on stdout                         |
+| `ark audit --junit`                          | JUnit XML on stdout (CI integration)                    |
+| `ark audit --sarif`                          | SARIF 2.1.0 JSON on stdout (GitHub code scanning)       |
+| `ark audit --output report.md`               | Write Markdown report to file                           |
+| `ark audit --output report.html`             | Write rich HTML report to file                          |
+| `ark audit --no-history`                     | Skip writing to `.ark-history.json`                     |
+| `ark check <category>`                       | Run a single audit category by ID                       |
+| `ark diff before.json after.json`            | Compare two audit JSON outputs and show score delta     |
+| `ark badge`                                  | Print SVG score badge to stdout                         |
+| `ark badge --output badge.svg`               | Write SVG badge to file                                 |
+| `ark fix`                                    | Scaffold missing files for every failing check          |
+| `ark audit --output ../x.md --allow-outside` | Allow an `--output` path outside the audited repo       |
 
 ### Generate
 
-| Command | Description |
-| --- | --- |
-| `ark init` | Create starter files (skip if present) |
-| `ark generate cursor` | Create `.cursor/rules/project.mdc` |
-| `ark generate codex` | Create `AGENTS.md` and Codex prompt template |
-| `ark generate claude` | Create `CLAUDE.md` and Claude prompt template |
-| `ark generate copilot` | Create `.github/copilot-instructions.md` |
-| `ark generate github` | Create CI workflow, PR template, dependabot config, issue templates |
-| `ark generate vscode` | Create `.vscode/settings.json`, `extensions.json`, `launch.json` |
+| Command                | Description                                                         |
+| ---------------------- | ------------------------------------------------------------------- |
+| `ark init`             | Create starter files (skip if present)                              |
+| `ark generate cursor`  | Create `.cursor/rules/project.mdc`                                  |
+| `ark generate codex`   | Create `AGENTS.md` and Codex prompt template                        |
+| `ark generate claude`  | Create `CLAUDE.md` and Claude prompt template                       |
+| `ark generate copilot` | Create `.github/copilot-instructions.md`                            |
+| `ark generate github`  | Create CI workflow, PR template, dependabot config, issue templates |
+| `ark generate vscode`  | Create `.vscode/settings.json`, `extensions.json`, `launch.json`    |
 
 Pass `--force` on any `init` or `generate` command to overwrite existing files.
 
@@ -121,10 +121,10 @@ Only include the sections you need. Invalid `.arkrc` files cause the command to 
 
 `ark` loads `.arkrc` from the CLI `[repoPath]` argument (default: current working directory), **before** applying `audit.repoPath` (or `init.repoPath` / `generate.repoPath`) from that file.
 
-| Command | Which `.arkrc` is loaded | Target repo |
-| --- | --- | --- |
-| `ark audit` (no path arg) | `.arkrc` in cwd | `audit.repoPath` from that file, or cwd if omitted |
-| `ark audit ../other` | `.arkrc` in `../other` | `../other` — explicit path wins; `audit.repoPath` in that file is ignored |
+| Command                   | Which `.arkrc` is loaded | Target repo                                                               |
+| ------------------------- | ------------------------ | ------------------------------------------------------------------------- |
+| `ark audit` (no path arg) | `.arkrc` in cwd          | `audit.repoPath` from that file, or cwd if omitted                        |
+| `ark audit ../other`      | `.arkrc` in `../other`   | `../other` — explicit path wins; `audit.repoPath` in that file is ignored |
 
 The same lookup rule applies to `init` and `generate`.
 
@@ -171,26 +171,26 @@ The score is the sum of all category scores, capped at 100. The first seven cate
 
 ### Core categories
 
-| Category | Max points |
-| --- | ---: |
-| Agent instructions | 20 |
-| Project architecture clarity | 15 |
-| Developer workflow clarity | 15 |
-| Testing and validation | 15 |
-| Safety boundaries | 15 |
-| Codebase navigability | 10 |
-| Prompt assets | 10 |
+| Category                     | Max points |
+| ---------------------------- | ---------: |
+| Agent instructions           |         20 |
+| Project architecture clarity |         15 |
+| Developer workflow clarity   |         15 |
+| Testing and validation       |         15 |
+| Safety boundaries            |         15 |
+| Codebase navigability        |         10 |
+| Prompt assets                |         10 |
 
 ### Supplemental categories
 
-| Category | Max points |
-| --- | ---: |
-| Dependency hygiene | 10 |
-| Code style tooling | 10 |
-| Documentation coverage | 10 |
-| Git hygiene | 10 |
-| Containerization | 5 |
-| IDE configuration | 5 |
+| Category               | Max points |
+| ---------------------- | ---------: |
+| Dependency hygiene     |         10 |
+| Code style tooling     |         10 |
+| Documentation coverage |         10 |
+| Git hygiene            |         10 |
+| Containerization       |          5 |
+| IDE configuration      |          5 |
 
 Agent instructions scoring:
 

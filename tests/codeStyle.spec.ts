@@ -22,24 +22,36 @@ describe('checkCodeStyle', () => {
   });
 
   it('awards points for eslint.config.js', async () => {
-    await writeFile(path.join(repoPath, 'eslint.config.js'), 'export default [];\n');
+    await writeFile(
+      path.join(repoPath, 'eslint.config.js'),
+      'export default [];\n',
+    );
     const result = await checkCodeStyle(repoPath);
     expect(result.score).toBeGreaterThanOrEqual(3);
-    expect(result.findings.some((f) => f.message.includes('ESLint'))).toBe(true);
+    expect(result.findings.some((f) => f.message.includes('ESLint'))).toBe(
+      true,
+    );
   });
 
   it('awards points for .prettierrc', async () => {
     await writeFile(path.join(repoPath, '.prettierrc'), '{"semi":false}\n');
     const result = await checkCodeStyle(repoPath);
     expect(result.score).toBeGreaterThanOrEqual(3);
-    expect(result.findings.some((f) => f.message.includes('Prettier'))).toBe(true);
+    expect(result.findings.some((f) => f.message.includes('Prettier'))).toBe(
+      true,
+    );
   });
 
   it('awards points for .editorconfig', async () => {
-    await writeFile(path.join(repoPath, '.editorconfig'), '[*]\nindent_style = space\n');
+    await writeFile(
+      path.join(repoPath, '.editorconfig'),
+      '[*]\nindent_style = space\n',
+    );
     const result = await checkCodeStyle(repoPath);
     expect(result.score).toBeGreaterThanOrEqual(2);
-    expect(result.findings.some((f) => f.message.includes('.editorconfig'))).toBe(true);
+    expect(
+      result.findings.some((f) => f.message.includes('.editorconfig')),
+    ).toBe(true);
   });
 
   it('full score with eslint + prettier + editorconfig', async () => {
