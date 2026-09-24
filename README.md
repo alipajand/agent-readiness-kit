@@ -8,13 +8,15 @@ It runs entirely on your machine: no telemetry, no network calls, no LLM calls. 
 
 ## Install
 
-`ark` is not published to npm yet. **The npm package named `agent-readiness-kit` is an unrelated project**; installing it does not give you this tool and runs someone else's code. Install from GitHub instead (the CLI is built during install):
+`ark` is not published to npm yet. **The npm package named `agent-readiness-kit` is an unrelated project**; installing it does not give you this tool and runs someone else's code. Install a release from GitHub instead (the CLI is built during install):
 
 ```bash
-npm install -g github:alipajand/agent-readiness-kit
-# or, as a dev dependency pinned to a reviewed commit
-pnpm add -D github:alipajand/agent-readiness-kit#<commit-sha>
+npm install -g github:alipajand/agent-readiness-kit#v1.0.0
+# or, as a dev dependency
+pnpm add -D github:alipajand/agent-readiness-kit#v1.0.0
 ```
+
+Tags can be moved. To pin an exact version you have reviewed, use the tag's commit SHA instead of `v1.0.0`.
 
 Or clone and build locally:
 
