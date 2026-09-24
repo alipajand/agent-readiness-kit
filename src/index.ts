@@ -1,3 +1,4 @@
+export { VERSION } from './version.js';
 export { auditRepo, auditCategory, ALL_CHECK_IDS } from './audit/auditRepo.js';
 export type { CheckId } from './audit/auditRepo.js';
 export {
