@@ -57,13 +57,21 @@ We follow coordinated disclosure: please allow reasonable time for a fix before 
 
 ## Safe usage
 
-- Run `ark` only on repositories you trust.
+- Prefer running `ark` on repositories you trust. It is hardened for untrusted input (see below), but scaffolding commands still write files into the target repository.
 - Review generated files before committing; use `--force` only when you intend to overwrite.
 - Treat audit reports as guidance, not a substitute for human review or production security review.
 
 ## File writes
 
-`init` and `generate` write only to fixed paths under the target repository. They use `writeFileSafe`, which skips existing files unless `--force` is passed — but they do not sandbox path resolution beyond joining known relative paths to the repo root.
+`init`, `generate`, and `fix` write only to fixed paths under the target repository through `writeFileSafe`, which:
+
+- skips existing files unless `--force` is passed;
+- treats a symlink at the target (including a dangling one) as existing, and never writes through it, even with `--force`;
+- refuses any write that would land outside the repository after following symlinked directories (for example `.github -> /elsewhere`).
+
+Refused writes are reported as `Refused (...)` and nothing is written.
+
+`ark audit` records score history in `.ark-history.json` by default. That write is refused, with a warning, when the file is a symlink or resolves outside the repository; the audit still completes. Malformed history content is ignored.
 
 `audit --output` and `badge --output` take a destination path from you. Every such path is resolved against the audited repository root and must stay inside it:
 
@@ -74,13 +82,27 @@ We follow coordinated disclosure: please allow reasonable time for a fix before 
 | Absolute inside the repo                     | Used as given                         | Written               |
 | Absolute elsewhere (for example `/tmp/x.md`) | Used as given                         | Rejected, exit code 1 |
 
-Rejection is enforced by `resolveOutputPath` (`src/fs/resolveOutputPath.ts`) before the audit runs, so no report or badge is produced for an escaping path. Passing `--allow-outside` disables the check and restores the old behavior — write anywhere the invoking user can write. `.arkrc` cannot set `--allow-outside`: a config file inside an audited repo can only ever redirect writes to paths within that repo.
+Rejection is enforced by `resolveOutputPath` (`src/fs/resolveOutputPath.ts`) before the audit runs, so no report or badge is produced for an escaping path. The check runs both lexically and after resolving symlinks in the existing part of the path, so a symlinked directory inside the repo cannot redirect the write. The report is never written through a symlink at the final path component.
 
-Remaining caveat: the check is lexical. A symlink **inside** the repository that points outside it is followed by the OS on write, so `--output` through such a symlink can still land outside the repo.
+Passing `--allow-outside` disables the containment check for a path given on the command line. It never applies to `audit.output` from `.arkrc`.
+
+## Untrusted `.arkrc`
+
+`.arkrc` comes from the repository being audited or scaffolded, so:
+
+- `audit.repoPath`, `init.repoPath`, and `generate.repoPath` must stay inside the directory that contains `.arkrc`. Otherwise `init`/`generate` could scaffold, or with `force` overwrite, files in another project.
+- `audit.output` must stay inside the audited repository.
+- `.arkrc` must be a regular file under 1 MiB.
+
+## Reading untrusted repositories
+
+- Symlinked directories are not traversed during the audit, and symlinked files count only when they point to a regular file inside the repository. A link such as `docs -> /` cannot walk the audit across the filesystem or list outside files in a report.
+- Only regular files up to 1 MiB are read, so FIFOs, devices, or huge files cannot hang an audit.
+- Control characters and invisible Unicode in file names and messages are neutralized in terminal output. Markdown reports escape HTML and use fence-safe code spans; HTML reports escape all text.
 
 ## Dependency updates
 
-Dependency updates are managed via [Dependabot](https://docs.github.com/en/code-security/dependabot) on the `develop` branch (see [`.github/dependabot.yml`](.github/dependabot.yml)).
+Dependency updates are managed via [Dependabot](https://docs.github.com/en/code-security/dependabot) on `main` for npm and GitHub Actions (see [`.github/dependabot.yml`](.github/dependabot.yml)). Installs use pnpm 11, which blocks dependency install scripts unless allowed in `pnpm-workspace.yaml` and refuses packages published less than a day ago. Transitive security floors live in `pnpm-workspace.yaml` `overrides`.
 
 ## Environment variables
 

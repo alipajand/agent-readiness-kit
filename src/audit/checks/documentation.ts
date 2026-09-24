@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { readTextFile } from '../../fs/readTextFile.js';
 import { fileExists } from '../../fs/fileExists.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
@@ -16,14 +16,6 @@ const README_QUALITY_KEYWORDS = [
   'overview',
 ];
 
-async function readFileSafe(filePath: string): Promise<string | null> {
-  try {
-    return await readFile(filePath, 'utf8');
-  } catch {
-    return null;
-  }
-}
-
 export async function checkDocumentation(
   repoPath: string,
 ): Promise<CategoryResult> {
@@ -32,7 +24,7 @@ export async function checkDocumentation(
 
   // README quality
   const readmePath = path.join(repoPath, 'README.md');
-  const readmeContent = await readFileSafe(readmePath);
+  const readmeContent = await readTextFile(readmePath);
   if (readmeContent) {
     const lower = readmeContent.toLowerCase();
     const keywordsFound = README_QUALITY_KEYWORDS.filter((kw) =>

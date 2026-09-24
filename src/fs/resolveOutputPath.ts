@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { isRealpathWithin, isWithin } from './safePath.js';
 
 export class OutputPathError extends Error {
   constructor(message: string) {
@@ -12,10 +13,15 @@ export type ResolveOutputPathOptions = {
   allowOutside?: boolean;
 };
 
-/** True when `target` is a descendant of `root` (lexical check, no symlink resolution). */
+/**
+ * True when `target` is a descendant of `root`, both lexically and after
+ * resolving symlinks in the part of the path that already exists, so a
+ * symlinked directory inside the repo cannot redirect the write elsewhere.
+ */
 function isInsideRepo(root: string, target: string): boolean {
-  const rel = path.relative(root, target);
-  return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
+  return (
+    target !== root && isWithin(root, target) && isRealpathWithin(root, target)
+  );
 }
 
 /**
@@ -23,8 +29,8 @@ function isInsideRepo(root: string, target: string): boolean {
  *
  * Relative paths are resolved under `repoPath`; absolute paths are used as given.
  * Either way the result must stay inside the repository unless `allowOutside` is
- * set, so `../` segments and absolute paths cannot silently overwrite files
- * elsewhere on the machine.
+ * set, so `../` segments, absolute paths, and symlinked directories cannot
+ * silently overwrite files elsewhere on the machine.
  */
 export function resolveOutputPath(
   repoPath: string,

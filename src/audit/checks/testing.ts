@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { readTextFile } from '../../fs/readTextFile.js';
 import { findFiles } from '../../fs/findFiles.js';
 import { readJsonFile } from '../../fs/writeFileSafe.js';
 import type { CategoryResult, Finding } from '../../types.js';
@@ -126,20 +126,17 @@ export async function checkTesting(repoPath: string): Promise<CategoryResult> {
       '**/jest.config.*',
     ]);
     for (const f of jestConfigs) {
-      try {
-        const src = await readFile(f, 'utf8');
-        if (
-          src.includes('collectCoverage') ||
+      const src = await readTextFile(f);
+      if (
+        src !== null &&
+        (src.includes('collectCoverage') ||
           src.includes('coverageProvider') ||
           src.includes('coverageThreshold') ||
-          src.includes('coverageDirectory')
-        ) {
-          hasCoverage = true;
-          coverageSource = 'jest';
-          break;
-        }
-      } catch {
-        // ignore unreadable files
+          src.includes('coverageDirectory'))
+      ) {
+        hasCoverage = true;
+        coverageSource = 'jest';
+        break;
       }
     }
   }

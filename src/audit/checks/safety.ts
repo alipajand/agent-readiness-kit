@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { fileExists, dirExists } from '../../fs/fileExists.js';
 import { findFiles } from '../../fs/findFiles.js';
-import { readFile } from 'node:fs/promises';
+import { readTextFile } from '../../fs/readTextFile.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 15;
@@ -32,12 +32,9 @@ const SAFETY_PATHS = [
 ];
 
 async function fileMentionsSafety(filePath: string): Promise<boolean> {
-  try {
-    const content = (await readFile(filePath, 'utf8')).toLowerCase();
-    return SAFETY_KEYWORDS.some((kw) => content.includes(kw.toLowerCase()));
-  } catch {
-    return false;
-  }
+  const content = (await readTextFile(filePath))?.toLowerCase();
+  if (content === undefined) return false;
+  return SAFETY_KEYWORDS.some((kw) => content.includes(kw.toLowerCase()));
 }
 
 export async function checkSafety(repoPath: string): Promise<CategoryResult> {

@@ -1,5 +1,6 @@
 import pc from 'picocolors';
 import type { AuditResult } from '../types.js';
+import { toSafeText } from './safeText.js';
 
 export function formatTerminalReport(
   result: AuditResult,
@@ -7,7 +8,7 @@ export function formatTerminalReport(
 ): string {
   const lines: string[] = [];
 
-  lines.push(pc.bold(`Repository: ${result.repoPath}`));
+  lines.push(pc.bold(`Repository: ${toSafeText(result.repoPath)}`));
   lines.push('');
 
   let deltaStr = '';
@@ -28,7 +29,7 @@ export function formatTerminalReport(
   lines.push('');
   lines.push(pc.bold('Category scores:'));
   for (const cat of result.categories) {
-    lines.push(`  ${cat.label}: ${cat.score}/${cat.maxScore}`);
+    lines.push(`  ${toSafeText(cat.label)}: ${cat.score}/${cat.maxScore}`);
   }
 
   const strong: string[] = [];
@@ -58,7 +59,7 @@ export function formatTerminalReport(
     lines.push(`  ${pc.dim('(none yet)')}`);
   } else {
     for (const s of uniqueStrong) {
-      lines.push(`  ${pc.green('✓')} ${s}`);
+      lines.push(`  ${pc.green('✓')} ${toSafeText(s)}`);
     }
   }
 
@@ -68,11 +69,11 @@ export function formatTerminalReport(
     lines.push(`  ${pc.dim('(none flagged)')}`);
   } else {
     for (const m of result.missing) {
-      lines.push(`  ${pc.red('✗')} ${m}`);
+      lines.push(`  ${pc.red('✗')} ${toSafeText(m)}`);
     }
     for (const d of missingDisplay.slice(0, 5)) {
       if (!result.missing.includes(d)) {
-        lines.push(`  ${pc.red('✗')} ${d}`);
+        lines.push(`  ${pc.red('✗')} ${toSafeText(d)}`);
       }
     }
   }
@@ -86,7 +87,7 @@ export function formatTerminalReport(
   } else {
     result.recommendations.forEach((rec, i) => {
       const text = rec.match(/^\d+\./) ? rec : `${i + 1}. ${rec}`;
-      lines.push(`  ${text}`);
+      lines.push(`  ${toSafeText(text)}`);
     });
   }
 

@@ -1,4 +1,5 @@
 import type { AuditResult } from '../types.js';
+import { codeSpan, escapeMarkdown } from './safeText.js';
 
 export function formatMarkdownReport(result: AuditResult): string {
   const timestamp = new Date().toISOString();
@@ -6,7 +7,7 @@ export function formatMarkdownReport(result: AuditResult): string {
 
   lines.push('# Agent Readiness Report');
   lines.push('');
-  lines.push(`**Repository:** \`${result.repoPath}\``);
+  lines.push(`**Repository:** ${codeSpan(result.repoPath)}`);
   lines.push(`**Score:** ${result.score} / 100`);
   lines.push(`**Generated:** ${timestamp}`);
   lines.push('');
@@ -16,21 +17,25 @@ export function formatMarkdownReport(result: AuditResult): string {
   lines.push('| Category | Score | Max |');
   lines.push('| --- | ---: | ---: |');
   for (const cat of result.categories) {
-    lines.push(`| ${cat.label} | ${cat.score} | ${cat.maxScore} |`);
+    lines.push(
+      `| ${escapeMarkdown(cat.label)} | ${cat.score} | ${cat.maxScore} |`,
+    );
   }
   lines.push('');
 
   lines.push('## Findings');
   lines.push('');
   for (const cat of result.categories) {
-    lines.push(`### ${cat.label} (${cat.score}/${cat.maxScore})`);
+    lines.push(
+      `### ${escapeMarkdown(cat.label)} (${cat.score}/${cat.maxScore})`,
+    );
     lines.push('');
     for (const f of cat.findings) {
       const icon =
         f.status === 'pass' ? '✅' : f.status === 'warn' ? '⚠️' : '❌';
-      lines.push(`- ${icon} ${f.message}`);
+      lines.push(`- ${icon} ${escapeMarkdown(f.message)}`);
       if (f.files?.length) {
-        lines.push(`  - Files: ${f.files.map((x) => `\`${x}\``).join(', ')}`);
+        lines.push(`  - Files: ${f.files.map((x) => codeSpan(x)).join(', ')}`);
       }
     }
     lines.push('');
@@ -42,7 +47,7 @@ export function formatMarkdownReport(result: AuditResult): string {
     lines.push('_None flagged._');
   } else {
     for (const m of result.missing) {
-      lines.push(`- ${m}`);
+      lines.push(`- ${escapeMarkdown(m)}`);
     }
   }
   lines.push('');
@@ -54,7 +59,7 @@ export function formatMarkdownReport(result: AuditResult): string {
   } else {
     result.recommendations.forEach((rec, i) => {
       const text = rec.replace(/^\d+\.\s*/, '').trim();
-      lines.push(`${i + 1}. ${text}`);
+      lines.push(`${i + 1}. ${escapeMarkdown(text)}`);
     });
   }
   lines.push('');

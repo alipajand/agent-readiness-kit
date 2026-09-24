@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import path from 'node:path';
-import { readFile, writeFile } from 'node:fs/promises';
-import { mkdir } from 'node:fs/promises';
+import { lstat, mkdir, readFile } from 'node:fs/promises';
 import pc from 'picocolors';
 import { auditRepo, auditCategory, ALL_CHECK_IDS } from './audit/auditRepo.js';
 import { formatTerminalReport } from './report/terminalReport.js';
@@ -21,7 +20,14 @@ import { generateCopilot } from './generate/copilotFiles.js';
 import { generateGithub } from './generate/githubFiles.js';
 import { generateVscode } from './generate/vscodeFiles.js';
 import { fixRepo } from './generate/fixRepo.js';
-import { appendHistory, loadHistory, getScoreDelta } from './audit/history.js';
+import {
+  appendHistory,
+  loadHistory,
+  getScoreDelta,
+  HistoryWriteError,
+} from './audit/history.js';
+import { writeFileNoFollow } from './fs/writeFileSafe.js';
+import { toSafeText } from './report/safeText.js';
 import type { WriteResult, AuditJson } from './types.js';
 import {
   loadArkrc,
@@ -60,13 +66,41 @@ function resolveOutputOrExit(
   }
 }
 
+/**
+ * Write a report or badge without following a symlink at the target. The
+ * path was already confined by `resolveOutputPath`; this closes the gap
+ * where the final component itself is a (possibly dangling) link.
+ */
+async function writeOutputFile(
+  outPath: string,
+  content: string,
+): Promise<void> {
+  await mkdir(path.dirname(outPath), { recursive: true });
+  const existing = await lstat(outPath).catch(() => null);
+  if (existing?.isSymbolicLink()) {
+    console.error(
+      pc.red(
+        `Refusing to write through a symbolic link: ${toSafeText(outPath)}`,
+      ),
+    );
+    process.exit(1);
+  }
+  await writeFileNoFollow(outPath, content);
+}
+
 function printWriteResults(repoPath: string, results: WriteResult[]): void {
   for (const r of results) {
-    const rel = path.relative(repoPath, r.path);
+    const rel = toSafeText(path.relative(repoPath, r.path));
     if (r.status === 'created') {
       console.log(pc.green(`Created: ${rel}`));
     } else if (r.status === 'overwritten') {
       console.log(pc.yellow(`Overwritten: ${rel}`));
+    } else if (r.status === 'refused') {
+      const why =
+        r.reason === 'symlink'
+          ? 'is a symbolic link'
+          : 'resolves outside the repository';
+      console.log(pc.red(`Refused (${why}): ${rel}`));
     } else {
       console.log(pc.dim(`Skipped (exists): ${rel}`));
     }
@@ -112,8 +146,14 @@ program
       const arkrc = await loadArkrcForRepo(repoPath);
       const run = resolveAuditRunOptions(repoPath, opts, arkrc);
       const resolved = resolveRepo(run.repoPathArg);
+      // --allow-outside only widens a path typed on the command line; an
+      // output path from .arkrc comes from the audited repo and stays inside it.
       const outPath = run.output
-        ? resolveOutputOrExit(resolved, run.output, opts.allowOutside === true)
+        ? resolveOutputOrExit(
+            resolved,
+            run.output,
+            opts.allowOutside === true && opts.output !== undefined,
+          )
         : undefined;
       const result = await auditRepo(resolved);
 
@@ -122,20 +162,20 @@ program
       if (opts.history !== false) {
         const prev = await loadHistory(resolved);
         delta = getScoreDelta(prev, result.score);
-        await appendHistory(resolved, result);
+        try {
+          await appendHistory(resolved, result);
+        } catch (err) {
+          if (!(err instanceof HistoryWriteError)) throw err;
+          console.error(pc.yellow(err.message));
+        }
       }
 
       // File output
       if (outPath) {
-        await mkdir(path.dirname(outPath), { recursive: true });
-
-        let content: string;
-        if (outPath.endsWith('.html')) {
-          content = formatHtmlReport(result);
-        } else {
-          content = formatMarkdownReport(result);
-        }
-        await writeFile(outPath, content, 'utf8');
+        const content = outPath.endsWith('.html')
+          ? formatHtmlReport(result)
+          : formatMarkdownReport(result);
+        await writeOutputFile(outPath, content);
         console.error(pc.green(`Report written: ${outPath}`));
       }
 
@@ -184,9 +224,9 @@ program
             : f.status === 'warn'
               ? pc.yellow('⚠')
               : pc.red('✗');
-        console.log(`  ${icon} ${f.message}`);
+        console.log(`  ${icon} ${toSafeText(f.message)}`);
         if (f.files?.length) {
-          console.log(`    ${pc.dim(f.files.join(', '))}`);
+          console.log(`    ${pc.dim(toSafeText(f.files.join(', ')))}`);
         }
       }
     },
@@ -238,8 +278,7 @@ program
       const result = await auditRepo(resolved);
       const svg = formatBadgeSvg(result);
       if (outPath) {
-        await mkdir(path.dirname(outPath), { recursive: true });
-        await writeFile(outPath, svg, 'utf8');
+        await writeOutputFile(outPath, svg);
         console.error(pc.green(`Badge written: ${outPath}`));
       } else {
         console.log(svg);

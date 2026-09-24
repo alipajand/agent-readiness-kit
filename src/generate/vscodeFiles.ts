@@ -27,6 +27,7 @@ export async function generateVscode(
   for (const { rel, content } of files) {
     const result = await writeFileSafe(path.join(repoPath, rel), content, {
       force,
+      root: repoPath,
     });
     results.push(result);
   }

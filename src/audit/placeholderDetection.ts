@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readTextFile } from '../fs/readTextFile.js';
 
 export const PLACEHOLDER_PATTERNS = [
   '<!-- Describe',
@@ -20,10 +20,6 @@ export function containsPlaceholderContent(content: string): boolean {
 export async function fileHasPlaceholderContent(
   filePath: string,
 ): Promise<boolean> {
-  try {
-    const content = await readFile(filePath, 'utf8');
-    return containsPlaceholderContent(content);
-  } catch {
-    return false;
-  }
+  const content = await readTextFile(filePath);
+  return content !== null && containsPlaceholderContent(content);
 }

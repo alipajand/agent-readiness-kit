@@ -34,8 +34,9 @@ ark audit --no-history
 
 `--output` is resolved against the audited repository root. A path that resolves
 outside it — `../` segments or an absolute path elsewhere — is rejected with exit
-code 1 before the audit runs, unless `--allow-outside` is passed. The same rule
-applies to `audit.output` in `.arkrc`, which cannot enable `--allow-outside`.
+code 1 before the audit runs, unless `--allow-outside` is passed. The check also
+resolves symlinks, and the report is never written through a symlink. The same rule
+applies to `audit.output` in `.arkrc`, which `--allow-outside` never widens.
 
 ```bash
 ark audit --output ../report.md                    # exits 1

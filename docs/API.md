@@ -116,7 +116,7 @@ Returns `currentScore - last entry score`, or `null` when history is empty.
 
 **Module:** `src/fs/writeFileSafe.ts`
 
-Creates parent directories as needed. Returns `{ status: 'created' | 'overwritten' | 'skipped' }`. Skips when the file exists unless `options.force === true`.
+Creates parent directories as needed. Returns `{ status: 'created' | 'overwritten' | 'skipped' | 'refused', reason? }`. Skips when the file exists unless `options.force === true`. A symlink at the target counts as existing and is never written through (`refused`, `reason: 'symlink'` with `force`). With `options.root`, writes that resolve outside that directory after following symlinks are `refused` with `reason: 'outside-repo'`.
 
 Used by `init` / `generate` with fixed paths under the repo. Does not validate that `filePath` stays inside a repository root — callers are responsible for path choice. User-supplied `--output` paths go through `resolveOutputPath` first.
 

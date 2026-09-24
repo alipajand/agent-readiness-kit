@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { readTextFile } from '../../fs/readTextFile.js';
 import { fileExists } from '../../fs/fileExists.js';
 import { findFiles } from '../../fs/findFiles.js';
 import type { CategoryResult, Finding } from '../../types.js';
@@ -13,14 +13,6 @@ const GITIGNORE_QUALITY_PATTERNS = [
   '.DS_Store',
 ];
 
-async function readFileSafe(filePath: string): Promise<string | null> {
-  try {
-    return await readFile(filePath, 'utf8');
-  } catch {
-    return null;
-  }
-}
-
 export async function checkGitHygiene(
   repoPath: string,
 ): Promise<CategoryResult> {
@@ -29,7 +21,7 @@ export async function checkGitHygiene(
 
   // .gitignore quality
   const gitignorePath = path.join(repoPath, '.gitignore');
-  const gitignoreContent = await readFileSafe(gitignorePath);
+  const gitignoreContent = await readTextFile(gitignorePath);
   if (gitignoreContent) {
     const lower = gitignoreContent.toLowerCase();
     const hits = GITIGNORE_QUALITY_PATTERNS.filter((p) =>
