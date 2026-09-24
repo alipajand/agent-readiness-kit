@@ -3,3 +3,13 @@ packages:
 
 allowBuilds:
   esbuild: true
+
+# pnpm 11 defaults to 1440 minutes (1 day). Explicit so CI and local installs match.
+minimumReleaseAge: 1440
+
+# Security floors for transitive dependencies. Each entry only rewrites the
+# vulnerable range, so it cannot pin a package to a version that later goes bad.
+overrides:
+  esbuild: '>=0.28.1'
+  js-yaml@>=4.0.0 <4.3.2: ^4.3.2
+  nanoid@<3.3.18: ^3.3.18
