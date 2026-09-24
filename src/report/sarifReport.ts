@@ -1,4 +1,5 @@
 import type { AuditResult } from '../types.js';
+import { VERSION } from '../version.js';
 
 type SarifLevel = 'error' | 'warning' | 'note';
 
@@ -49,8 +50,8 @@ export function formatSarifReport(result: AuditResult): string {
         tool: {
           driver: {
             name: 'ark',
-            informationUri: 'https://github.com/ark-agent/agent-readiness-kit',
-            version: '0.1.0',
+            informationUri: 'https://github.com/alipajand/agent-readiness-kit',
+            version: VERSION,
             rules,
           },
         },

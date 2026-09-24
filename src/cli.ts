@@ -36,6 +36,7 @@ import {
   resolveGenerateOptions,
 } from './config/loadArkrc.js';
 import { handleArkrcError } from './config/handleArkrcError.js';
+import { VERSION } from './version.js';
 import { resolveOutputPath, OutputPathError } from './fs/resolveOutputPath.js';
 
 function resolveRepo(cwd?: string): string {
@@ -120,7 +121,7 @@ const program = new Command();
 program
   .name('ark')
   .description('Audit and improve repository readiness for AI coding agents')
-  .version('0.1.0');
+  .version(VERSION);
 
 // ── audit ──────────────────────────────────────────────────────────────────
 program

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-09-24
+
 ### Added
 
 - `ark generate claude` also writes `.claude/settings.json` and a `/verify` command (`.claude/commands/verify.md`). The settings pre-approve nothing, ask before `git push`, and deny reading `.env` files, `curl`/`wget`, `rm -rf`, force pushes, and hard resets. The generated `CLAUDE.md` imports `AGENTS.md` with `@AGENTS.md`.
@@ -47,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- SARIF output links to this repository (`informationUri` pointed at an unrelated organization) and reports the package version, which `ark --version` now shares.
 - `missing` no longer lists `AGENTS.md` when it exists but tool-specific instruction files
   are absent; it recommends adding those instead.
 - Dependabot targeted a nonexistent `develop` branch, so version updates never ran.

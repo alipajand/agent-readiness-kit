@@ -6,7 +6,8 @@ Security fixes are applied to the latest release on the default branch. Older ve
 
 | Version | Supported |
 | ------- | --------- |
-| 0.1.x   | Yes       |
+| 1.x     | Yes       |
+| 0.x     | No        |
 
 ## Reporting a vulnerability
 
