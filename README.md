@@ -8,9 +8,17 @@ It runs entirely on your machine: no telemetry, no network calls, no LLM calls. 
 
 ## Install
 
+`ark` is not published to npm yet. **The npm package named `agent-readiness-kit` is an unrelated project**; installing it does not give you this tool and runs someone else's code. Install from GitHub instead (the CLI is built during install):
+
 ```bash
-pnpm add -D agent-readiness-kit
-# or clone and link locally
+npm install -g github:alipajand/agent-readiness-kit
+# or, as a dev dependency pinned to a reviewed commit
+pnpm add -D github:alipajand/agent-readiness-kit#<commit-sha>
+```
+
+Or clone and build locally:
+
+```bash
 pnpm install
 pnpm build
 ```
