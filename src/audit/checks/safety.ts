@@ -2,6 +2,7 @@ import path from 'node:path';
 import { fileExists, dirExists } from '../../fs/fileExists.js';
 import { findFiles } from '../../fs/findFiles.js';
 import { readTextFile } from '../../fs/readTextFile.js';
+import { isRealpathWithin } from '../../fs/safePath.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 15;
@@ -30,6 +31,93 @@ const SAFETY_PATHS = [
   'docs/migrations',
   'docs/MIGRATIONS.md',
 ];
+
+const UNRESTRICTED_SHELL = /^Bash(?:\((?:\*|:\*)?\))?$/;
+
+function strings(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((v): v is string => typeof v === 'string')
+    : [];
+}
+
+/**
+ * Committed Claude Code settings: deny rules that keep secrets out of reach
+ * earn points, and settings that let the agent act without asking cost them.
+ */
+async function claudeSettings(
+  repoPath: string,
+): Promise<{ points: number; findings: Finding[] }> {
+  const rel = '.claude/settings.json';
+  const full = path.join(repoPath, rel);
+  if (!isRealpathWithin(repoPath, full)) return { points: 0, findings: [] };
+  const text = await readTextFile(full);
+  if (text === null) return { points: 0, findings: [] };
+
+  let settings: unknown;
+  try {
+    settings = JSON.parse(text);
+  } catch {
+    return {
+      points: 0,
+      findings: [
+        { status: 'warn', message: `${rel} is not valid JSON`, files: [rel] },
+      ],
+    };
+  }
+
+  const root =
+    typeof settings === 'object' && settings !== null
+      ? (settings as Record<string, unknown>)
+      : {};
+  const permissions =
+    typeof root.permissions === 'object' && root.permissions !== null
+      ? (root.permissions as Record<string, unknown>)
+      : {};
+  const findings: Finding[] = [];
+  let points = 0;
+
+  if (strings(permissions.deny).some((rule) => rule.includes('.env'))) {
+    points += 2;
+    findings.push({
+      status: 'pass',
+      message: 'Claude Code settings deny reading .env files',
+      files: [rel],
+    });
+  } else {
+    findings.push({
+      status: 'warn',
+      message:
+        'Claude Code settings do not deny reading .env files — add "Read(./.env)" to permissions.deny',
+      files: [rel],
+    });
+  }
+
+  const bypass = permissions.defaultMode === 'bypassPermissions';
+  const openShell = strings(permissions.allow).some((rule) =>
+    UNRESTRICTED_SHELL.test(rule.replace(/\s+/g, '')),
+  );
+  if (bypass || openShell) {
+    points -= 5;
+    findings.push({
+      status: 'fail',
+      message: bypass
+        ? 'Claude Code settings bypass every permission prompt (defaultMode: bypassPermissions)'
+        : 'Claude Code settings allow any shell command without asking',
+      files: [rel],
+    });
+  }
+
+  if (root.enableAllProjectMcpServers === true) {
+    findings.push({
+      status: 'warn',
+      message:
+        'Claude Code settings auto-approve every MCP server in the repository (enableAllProjectMcpServers)',
+      files: [rel],
+    });
+  }
+
+  return { points, findings };
+}
 
 async function fileMentionsSafety(filePath: string): Promise<boolean> {
   const content = (await readTextFile(filePath))?.toLowerCase();
@@ -102,6 +190,10 @@ export async function checkSafety(repoPath: string): Promise<CategoryResult> {
       });
     }
   }
+
+  const claude = await claudeSettings(repoPath);
+  score = Math.max(0, score + claude.points);
+  findings.push(...claude.findings);
 
   if (score < 5) {
     findings.push({

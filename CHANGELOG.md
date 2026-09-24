@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `ark generate claude` also writes `.claude/settings.json` and a `/verify` command (`.claude/commands/verify.md`). The settings pre-approve nothing, ask before `git push`, and deny reading `.env` files, `curl`/`wget`, `rm -rf`, force pushes, and hard resets. The generated `CLAUDE.md` imports `AGENTS.md` with `@AGENTS.md`.
+- Safety scoring reads a committed `.claude/settings.json`. Deny rules covering `.env` add 2 points. `defaultMode: bypassPermissions` or an allow rule for any `Bash` command costs 5 points. `enableAllProjectMcpServers` gets a warning. Settings linked from outside the repository are ignored.
+- Agent instructions recognize Claude subagents (`.claude/agents/`), skills (`.claude/skills/*/SKILL.md`), and rules (`.claude/rules/`).
 - `ark audit --min-score <n>` (and `audit.minScore` in `.arkrc`) exits with code 1 when the score is below `n`, so `ark` can gate CI on its own.
 - Agent instructions now recognize Gemini (`GEMINI.md`, `.gemini/styleguide.md`), Amp (`AGENT.md`), Windsurf, Cline, Roo Code, Kiro, Junie, Augment, Continue, Goose, and Copilot path-specific instructions as tool-specific files.
 - Library entry point: `import { auditRepo, formatMarkdownReport } from 'agent-readiness-kit'` (`main`, `types`, and `exports` in `package.json`).

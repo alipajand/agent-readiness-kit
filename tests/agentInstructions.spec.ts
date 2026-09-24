@@ -141,6 +141,28 @@ describe('checkAgentInstructions', () => {
     ).toBe(true);
   });
 
+  it('detects Claude subagents, skills, and rules', async () => {
+    for (const dir of ['agents', 'rules', path.join('skills', 'deploy')]) {
+      await mkdir(path.join(repoPath, '.claude', dir), { recursive: true });
+    }
+    await writeFile(path.join(repoPath, '.claude', 'agents', 'rev.md'), '# r');
+    await writeFile(path.join(repoPath, '.claude', 'rules', 'test.md'), '# t');
+    await writeFile(
+      path.join(repoPath, '.claude', 'skills', 'deploy', 'SKILL.md'),
+      '# s',
+    );
+    const result = await checkAgentInstructions(repoPath);
+    expect(result.score).toBe(10);
+    const finding = result.findings.find((f) =>
+      f.message.startsWith('Claude subagents, skills, or rules'),
+    );
+    expect(finding?.files?.map((f) => f.replace(/\\/g, '/')).sort()).toEqual([
+      '.claude/agents/rev.md',
+      '.claude/rules/test.md',
+      '.claude/skills/deploy/SKILL.md',
+    ]);
+  });
+
   it('gives full score for AGENTS.md plus .claude/commands/review.md', async () => {
     await writeFile(
       path.join(repoPath, 'AGENTS.md'),

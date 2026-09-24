@@ -157,9 +157,11 @@ export const CLAUDE_TASK_PROMPT = buildPromptTemplate(
 
 export const CLAUDE_MD = `# Claude Code instructions
 
-This file tells Claude Code how to work safely in this repo. \`AGENTS.md\` is the
-shared source of truth — read it (and \`docs/ARCHITECTURE.md\` when it exists)
-before making large changes.
+@AGENTS.md
+
+This file tells Claude Code how to work safely in this repo. \`AGENTS.md\`,
+imported above, is the shared source of truth. Read \`docs/ARCHITECTURE.md\`
+when it exists before making large changes.
 
 Keep changes focused. Do not make unrelated refactors. Match the existing
 naming, types, and patterns.
@@ -174,6 +176,37 @@ changes, also run the broader project checks.
 
 When you finish, share a short summary, the files you changed, the commands you
 ran, the test results, and anything you left unfinished.
+`;
+
+// Shared Claude Code settings. Nothing is pre-approved: the agent asks before
+// running commands, and the deny list keeps secrets and destructive commands
+// out of reach even when someone approves too quickly.
+export const CLAUDE_SETTINGS_JSON = `{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [],
+    "ask": ["Bash(git push:*)"],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)"
+    ]
+  }
+}
+`;
+
+export const CLAUDE_VERIFY_COMMAND_MD = `---
+description: Run the project's validation commands and report the results
+---
+
+Run the validation commands listed in AGENTS.md (tests, lint, typecheck, build) in
+order and stop at the first failure. Report each command with pass or fail. For a
+failure, show the relevant error lines and the file and line to fix. Do not change
+any files.
 `;
 
 export const COPILOT_INSTRUCTIONS_MD = `# GitHub Copilot instructions

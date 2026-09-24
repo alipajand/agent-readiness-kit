@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtemp, rm, writeFile, mkdir } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile, mkdir, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { checkSafety } from '../src/audit/checks/safety.js';
@@ -79,5 +79,85 @@ describe('checkSafety', () => {
     );
     const result = await checkSafety(repoPath);
     expect(result.score).toBeLessThanOrEqual(result.maxScore);
+  });
+
+  describe('Claude Code settings', () => {
+    const writeSettings = async (settings: unknown) => {
+      await mkdir(path.join(repoPath, '.claude'), { recursive: true });
+      await writeFile(
+        path.join(repoPath, '.claude', 'settings.json'),
+        typeof settings === 'string' ? settings : JSON.stringify(settings),
+      );
+    };
+
+    it('rewards deny rules that cover .env files', async () => {
+      await writeSettings({ permissions: { deny: ['Read(./.env)'] } });
+      const result = await checkSafety(repoPath);
+      expect(result.score).toBe(2);
+      expect(result.findings).toContainEqual(
+        expect.objectContaining({
+          status: 'pass',
+          message: 'Claude Code settings deny reading .env files',
+        }),
+      );
+    });
+
+    it('warns when settings do not deny .env reads', async () => {
+      await writeSettings({ permissions: { allow: ['Bash(pnpm test)'] } });
+      const result = await checkSafety(repoPath);
+      expect(result.score).toBe(0);
+      expect(
+        result.findings.some(
+          (f) => f.status === 'warn' && f.message.includes('.env'),
+        ),
+      ).toBe(true);
+    });
+
+    it.each([
+      [{ permissions: { defaultMode: 'bypassPermissions' } }, 'bypass'],
+      [{ permissions: { allow: ['Bash(*)'] } }, 'any shell command'],
+    ])('penalizes %j', async (settings, text) => {
+      await writeFile(path.join(repoPath, '.env.example'), 'API_KEY=');
+      await writeFile(path.join(repoPath, 'SECURITY.md'), '# Security');
+      await writeSettings(settings);
+      const result = await checkSafety(repoPath);
+      expect(result.score).toBe(1);
+      expect(
+        result.findings.some(
+          (f) => f.status === 'fail' && f.message.includes(text),
+        ),
+      ).toBe(true);
+    });
+
+    it('warns on invalid JSON and never goes below 0', async () => {
+      await writeSettings('{ nope');
+      expect((await checkSafety(repoPath)).score).toBe(0);
+      await writeSettings({
+        permissions: { defaultMode: 'bypassPermissions' },
+      });
+      expect((await checkSafety(repoPath)).score).toBe(0);
+    });
+
+    it('ignores settings linked from outside the repository', async () => {
+      const outside = await mkdtemp(path.join(tmpdir(), 'ark-outside-'));
+      try {
+        await writeFile(
+          path.join(outside, 'settings.json'),
+          JSON.stringify({ permissions: { deny: ['Read(./.env)'] } }),
+        );
+        await mkdir(path.join(repoPath, '.claude'));
+        await symlink(
+          path.join(outside, 'settings.json'),
+          path.join(repoPath, '.claude', 'settings.json'),
+        );
+        const result = await checkSafety(repoPath);
+        expect(result.score).toBe(0);
+        expect(
+          result.findings.some((f) => f.message.includes('Claude Code')),
+        ).toBe(false);
+      } finally {
+        await rm(outside, { recursive: true, force: true });
+      }
+    });
   });
 });
