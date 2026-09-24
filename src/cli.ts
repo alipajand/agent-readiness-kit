@@ -402,7 +402,9 @@ generate
 
 generate
   .command('claude')
-  .description('Generate CLAUDE.md and Claude prompt template')
+  .description(
+    'Generate CLAUDE.md, .claude/settings.json, a /verify command, and a Claude prompt template',
+  )
   .option('-f, --force', 'Overwrite existing files')
   .argument('[repoPath]', 'Repository path', '.')
   .action(async (repoPath: string, opts: { force?: boolean }) => {

@@ -117,7 +117,12 @@ pnpm dev generate codex
 
 ## `ark generate claude [repoPath]`
 
-Generate Claude Code starter files (`CLAUDE.md` and a task prompt template).
+Generate Claude Code starter files:
+
+- `CLAUDE.md`, which imports `AGENTS.md` with `@AGENTS.md`
+- `.claude/settings.json`, which pre-approves nothing, asks before `git push`, and denies reading `.env` files, `curl`/`wget`, `rm -rf`, force pushes, and hard resets
+- a `/verify` command (`.claude/commands/verify.md`) that runs the validation commands listed in `AGENTS.md`
+- a task prompt template
 
 ```bash
 ark generate claude

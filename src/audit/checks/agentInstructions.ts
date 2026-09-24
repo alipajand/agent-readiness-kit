@@ -149,6 +149,22 @@ export async function checkAgentInstructions(
     });
   }
 
+  const claudeExtras = (
+    await findFiles(repoPath, [
+      '.claude/agents/**/*.md',
+      '.claude/skills/**/SKILL.md',
+      '.claude/rules/**/*.md',
+    ])
+  ).map((f) => path.relative(repoPath, f));
+  if (claudeExtras.length > 0) {
+    detected.push(...claudeExtras);
+    findings.push({
+      status: 'pass',
+      message: 'Claude subagents, skills, or rules found (.claude/)',
+      files: claudeExtras,
+    });
+  }
+
   if (await fileExists(copilot)) {
     detected.push('.github/copilot-instructions.md');
     findings.push({

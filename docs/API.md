@@ -170,7 +170,7 @@ Each check in `src/audit/checks/*` exports an async function `(repoPath: string)
 - `checkArchitecture` — `README.md`, `docs/ARCHITECTURE.md`, ADR directory, monorepo layout
 - `checkWorkflow` — `package.json` scripts (`dev`, `build`, `lint`, `test`, `typecheck`, `format`, `clean`)
 - `checkTesting` — test files, test runner config, CI workflow, coverage config
-- `checkSafety` — `.env.example`, `SECURITY.md`, docs mentioning security/auth/migration keywords
+- `checkSafety` — `.env.example`, `SECURITY.md`, docs mentioning security/auth/migration keywords, and Claude Code settings (`.env` deny rules, `bypassPermissions`, unrestricted `Bash`)
 - `checkNavigability` — `docs/ROUTES.md`, `docs/API.md`, `docs/SCORING.md`, OpenAPI spec, module directories
 - `checkPromptAssets` — `docs/prompts/`, `.cursor/rules/`, named task prompt files
 

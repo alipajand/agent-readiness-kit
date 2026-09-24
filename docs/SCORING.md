@@ -46,7 +46,7 @@ A tool-specific file is any instruction file for a specific agent tool:
 
 - **Cursor:** `.cursorrules`, `.cursor/rules/*.mdc`
 - **Copilot:** `.github/copilot-instructions.md`, `.github/instructions/**/*.instructions.md`
-- **Claude Code:** `CLAUDE.md`, `claude.md`, `.claude/CLAUDE.md`, `.claude/claude.md`, `.claude/commands/*.md`
+- **Claude Code:** `CLAUDE.md`, `claude.md`, `.claude/CLAUDE.md`, `.claude/claude.md`, `.claude/commands/*.md`, `.claude/agents/**/*.md`, `.claude/skills/**/SKILL.md`, `.claude/rules/**/*.md`
 - **Gemini:** `GEMINI.md`, `.gemini/styleguide.md`
 - **Amp:** `AGENT.md`
 - **Windsurf:** `.windsurfrules`, `.windsurf/rules/**/*.md`
@@ -104,6 +104,11 @@ All seven scripts present yields **15/15**.
 | ----------------------------------------------------------------------- | ----------------: |
 | Safety/ops doc (`.env.example`, `SECURITY.md`, `docs/migrations`, etc.) |     3 each, max 9 |
 | Docs mention safety keywords (auth, secrets, migration, etc.)           | 2 per file, max 6 |
+| `.claude/settings.json` denies reading `.env` files                     |                 2 |
+| `.claude/settings.json` sets `bypassPermissions` or allows any `Bash`   |                −5 |
+
+The category never drops below 0. Claude Code settings that auto-approve every
+MCP server (`enableAllProjectMcpServers`) get a warning without a deduction.
 
 ### Codebase navigability (max 10)
 

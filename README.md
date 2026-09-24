@@ -60,15 +60,15 @@ pnpm dev audit
 
 ### Generate
 
-| Command                | Description                                                         |
-| ---------------------- | ------------------------------------------------------------------- |
-| `ark init`             | Create starter files (skip if present)                              |
-| `ark generate cursor`  | Create `.cursor/rules/project.mdc`                                  |
-| `ark generate codex`   | Create `AGENTS.md` and Codex prompt template                        |
-| `ark generate claude`  | Create `CLAUDE.md` and Claude prompt template                       |
-| `ark generate copilot` | Create `.github/copilot-instructions.md`                            |
-| `ark generate github`  | Create CI workflow, PR template, dependabot config, issue templates |
-| `ark generate vscode`  | Create `.vscode/settings.json`, `extensions.json`, `launch.json`    |
+| Command                | Description                                                                                    |
+| ---------------------- | ---------------------------------------------------------------------------------------------- |
+| `ark init`             | Create starter files (skip if present)                                                         |
+| `ark generate cursor`  | Create `.cursor/rules/project.mdc`                                                             |
+| `ark generate codex`   | Create `AGENTS.md` and Codex prompt template                                                   |
+| `ark generate claude`  | Create `CLAUDE.md`, `.claude/settings.json`, a `/verify` command, and a Claude prompt template |
+| `ark generate copilot` | Create `.github/copilot-instructions.md`                                                       |
+| `ark generate github`  | Create CI workflow, PR template, dependabot config, issue templates                            |
+| `ark generate vscode`  | Create `.vscode/settings.json`, `extensions.json`, `launch.json`                               |
 
 Pass `--force` on any `init` or `generate` command to overwrite existing files.
 
@@ -85,6 +85,9 @@ claude.md
 .claude/CLAUDE.md
 .claude/claude.md
 .claude/commands/*.md
+.claude/agents/**/*.md
+.claude/skills/**/SKILL.md
+.claude/rules/**/*.md
 .cursorrules
 .cursor/rules/*.mdc
 .github/copilot-instructions.md
@@ -94,7 +97,9 @@ prompts/**/*.md
 
 A few notes on Claude Code files:
 
-- `CLAUDE.md` at the repo root is the recommended Claude Code file, and `ark generate claude` always creates that canonical root file.
+- `CLAUDE.md` at the repo root is the recommended Claude Code file, and `ark generate claude` always creates that canonical root file. It imports `AGENTS.md` with `@AGENTS.md`, and the generated `.claude/settings.json` pre-approves nothing and denies `.env` reads and destructive commands.
+- Subagents (`.claude/agents/`), skills (`.claude/skills/*/SKILL.md`), and rules (`.claude/rules/`) count as Claude context too.
+- A committed `.claude/settings.json` affects the safety score. Denying `.env` reads adds points. `bypassPermissions` or an allow rule for any `Bash` command costs points.
 - Lowercase and nested Claude files (`claude.md`, `.claude/CLAUDE.md`, `.claude/claude.md`, `.claude/commands/*.md`) are recognized too, because real repos use them. If only a lowercase `claude.md` is present, the audit suggests renaming it to `CLAUDE.md`.
 - `.claude/commands/*.md` count as useful Claude context, but they don't replace a root `CLAUDE.md`.
 

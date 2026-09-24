@@ -15,13 +15,27 @@ describe('generateClaude', () => {
     await rm(repoPath, { recursive: true, force: true });
   });
 
-  it('creates CLAUDE.md and a task prompt', async () => {
+  it('creates CLAUDE.md, settings, a verify command, and a task prompt', async () => {
     const results = await generateClaude({ repoPath });
-    expect(results).toHaveLength(2);
+    expect(results).toHaveLength(4);
     expect(results.every((r) => r.status === 'created')).toBe(true);
 
     const claude = await readFile(path.join(repoPath, 'CLAUDE.md'), 'utf8');
     expect(claude).toContain('Claude Code instructions');
+    expect(claude).toMatch(/^@AGENTS\.md$/m);
+
+    const settings = JSON.parse(
+      await readFile(path.join(repoPath, '.claude', 'settings.json'), 'utf8'),
+    );
+    expect(settings.permissions.allow).toEqual([]);
+    expect(settings.permissions.deny).toContain('Read(./.env)');
+
+    const verify = await readFile(
+      path.join(repoPath, '.claude', 'commands', 'verify.md'),
+      'utf8',
+    );
+    expect(verify).toMatch(/^---\ndescription: /);
+    expect(verify).not.toContain('allowed-tools');
     const prompt = await readFile(
       path.join(repoPath, 'docs', 'prompts', 'CLAUDE_TASK_PROMPT.md'),
       'utf8',
