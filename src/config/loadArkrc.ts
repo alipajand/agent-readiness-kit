@@ -1,8 +1,6 @@
-import { readFile, stat } from 'node:fs/promises';
-import { MAX_TEXT_FILE_BYTES } from '../fs/readTextFile.js';
+import { MAX_TEXT_FILE_BYTES, readRegularFile } from '../fs/readTextFile.js';
 import path from 'node:path';
 import { arkrcSchema, type ArkRc } from './schema.js';
-import { fileExists } from '../fs/fileExists.js';
 import { isWithin } from '../fs/safePath.js';
 
 const ARKRC_FILENAME = '.arkrc';
@@ -23,12 +21,11 @@ export function formatArkrcValidationError(
 
 export async function loadArkrc(repoPath: string): Promise<ArkRc | null> {
   const filePath = path.join(path.resolve(repoPath), ARKRC_FILENAME);
-  if (!(await fileExists(filePath))) {
+  const read = await readRegularFile(filePath, MAX_TEXT_FILE_BYTES);
+  if (read.status === 'missing') {
     return null;
   }
-
-  const info = await stat(filePath);
-  if (!info.isFile() || info.size > MAX_TEXT_FILE_BYTES) {
+  if (read.status === 'not-a-file' || read.status === 'too-large') {
     throw new ArkrcError(
       `${ARKRC_FILENAME} at ${filePath} must be a regular file under ${MAX_TEXT_FILE_BYTES} bytes`,
     );
@@ -36,8 +33,8 @@ export async function loadArkrc(repoPath: string): Promise<ArkRc | null> {
 
   let raw: unknown;
   try {
-    const text = await readFile(filePath, 'utf8');
-    raw = JSON.parse(text) as unknown;
+    if (read.status === 'error') throw read.error;
+    raw = JSON.parse(read.content) as unknown;
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
     throw new ArkrcError(

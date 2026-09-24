@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- File type and size are checked on the opened file rather than the path (reads open non-blocking, so FIFOs cannot hang), so a file cannot be swapped between the check and the read. `.arkrc` uses the same reader.
+- Markdown escaping also escapes backslashes, so a backslash in a file name cannot cancel an escaped `|` and split a table cell.
 - `audit --output` and `badge --output` paths are now resolved against the audited
   repository root and rejected when they escape it (`../` segments or absolute paths
   elsewhere). Pass `--allow-outside` to opt out. `.arkrc` cannot enable it.
