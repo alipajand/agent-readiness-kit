@@ -2,7 +2,7 @@
 
 A deterministic, local-first CLI that checks whether a repository is ready for AI coding agents — Cursor, Claude Code, Codex, GitHub Copilot, and other coding agents.
 
-It inspects repo structure, configuration, documentation, scripts, tests, and agent instruction files, then produces a terminal summary plus optional JSON, Markdown, or HTML reports. Use `ark init`, `ark generate`, and `ark fix` to scaffold practical starter files.
+It scores the repository out of 100 across 13 categories: agent instruction files, architecture docs, scripts, tests, safety boundaries (including Claude Code permission settings), and more. It prints a terminal summary, writes optional JSON, JUnit, SARIF, Markdown, or HTML reports, and can gate CI with `--min-score`. Use `ark init`, `ark generate`, and `ark fix` to scaffold practical starter files, including least-privilege Claude Code settings.
 
 It runs entirely on your machine: no telemetry, no network calls, no LLM calls. It's meant to make a repo safer and easier for agents to work in, and to complement human review — not replace it.
 
