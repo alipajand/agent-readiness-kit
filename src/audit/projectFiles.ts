@@ -1,4 +1,4 @@
-import fg from 'fast-glob';
+import { escapePath } from 'tinyglobby';
 import path from 'node:path';
 import { findFiles } from '../fs/findFiles.js';
 import { readTextFile } from '../fs/readTextFile.js';
@@ -299,7 +299,7 @@ export async function readRoot(
   repoPath: string,
   rel: string,
 ): Promise<string | null> {
-  const [file] = await findFiles(repoPath, fg.escapePath(rel));
+  const [file] = await findFiles(repoPath, escapePath(rel));
   return file ? readTextFile(file) : null;
 }
 
@@ -328,7 +328,7 @@ export async function repoFileExists(
   repoPath: string,
   rel: string,
 ): Promise<boolean> {
-  return (await findFiles(repoPath, fg.escapePath(rel))).length > 0;
+  return (await findFiles(repoPath, escapePath(rel))).length > 0;
 }
 
 function unique(values: string[]): string[] {
