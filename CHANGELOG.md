@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Testing recognizes test files outside JavaScript: Go `*_test.go`, Python `test_*.py` and `*_test.py`, Rust `tests/` and inline `#[test]` modules, Ruby `*_spec.rb`, `test_*.rb`, and `*_test.rb`, Java/Kotlin `src/test/` and `*Test(s)`, and C# `*.Tests/` and `*Test(s).cs`. The finding names the languages it matched. Files in `vendor/`, `third_party/`, `build/`, `target/`, virtual environments, `coverage/`, `fixtures/`, and `testdata/` are no longer counted (#27).
+
 ## [1.0.0] - 2026-09-24
 
 ### Added
