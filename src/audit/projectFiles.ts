@@ -205,7 +205,10 @@ export async function readTaskSources(
           .filter((m) => m.endsWith('/package.json'))
           .slice(0, MAX_NESTED_PACKAGE_FILES);
   for (const rel of packageFiles) {
-    const pkg = await readJsonFile<PackageJson>(path.join(repoPath, rel));
+    const pkg =
+      rel === 'package.json'
+        ? parseJson<PackageJson>(rootPkg)
+        : await readJsonFile<PackageJson>(path.join(repoPath, rel));
     const scripts = pkg?.scripts;
     if (scripts && typeof scripts === 'object' && !Array.isArray(scripts)) {
       add(
@@ -298,6 +301,23 @@ export async function readRoot(
 ): Promise<string | null> {
   const [file] = await findFiles(repoPath, fg.escapePath(rel));
   return file ? readTextFile(file) : null;
+}
+
+/** Parse a JSON file at the repository root, read through `readRoot`. */
+export async function readRootJson<T>(
+  repoPath: string,
+  rel: string,
+): Promise<T | null> {
+  return parseJson<T>(await readRoot(repoPath, rel));
+}
+
+function parseJson<T>(raw: string | null): T | null {
+  if (raw === null) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
 }
 
 /**

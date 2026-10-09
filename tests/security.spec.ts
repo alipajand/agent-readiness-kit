@@ -26,8 +26,15 @@ import {
   loadHistory,
 } from '../src/audit/history.js';
 import { loadArkrc } from '../src/config/loadArkrc.js';
+import { checkAgentInstructions } from '../src/audit/checks/agentInstructions.js';
+import { checkArchitecture } from '../src/audit/checks/architecture.js';
+import { checkDependencies } from '../src/audit/checks/dependencies.js';
+import { checkDocumentation } from '../src/audit/checks/documentation.js';
+import { checkGitHygiene } from '../src/audit/checks/gitHygiene.js';
+import { checkTesting } from '../src/audit/checks/testing.js';
 import { runInit } from '../src/generate/initFiles.js';
 import { generateGithub } from '../src/generate/githubFiles.js';
+import { formatJunitReport } from '../src/report/junitReport.js';
 import { formatMarkdownReport } from '../src/report/markdownReport.js';
 import { formatTerminalReport } from '../src/report/terminalReport.js';
 import { toSafeText } from '../src/report/safeText.js';
@@ -158,6 +165,13 @@ describe('findFiles', () => {
     await writeFile(path.join(outside, 'secret.md'), 'x');
     await symlink(outside, path.join(repo, 'docs'));
     expect(await findFiles(repo, '**/*.md')).toEqual([]);
+  });
+
+  it('does not list files under a symlinked directory named in the pattern', async () => {
+    await mkdir(path.join(outside, 'workflows'));
+    await writeFile(path.join(outside, 'workflows', 'ci.yml'), 'x');
+    await symlink(outside, path.join(repo, '.github'));
+    expect(await findFiles(repo, '.github/workflows/*.yml')).toEqual([]);
   });
 
   it('keeps symlinked files whose target is inside the repo', async () => {
@@ -392,5 +406,124 @@ describe('findFiles with a file where a directory pattern expects one', () => {
     await writeFile(path.join(repo, '.clinerules'), 'rules');
     const found = await findFiles(repo, ['.clinerules', '.clinerules/**/*.md']);
     expect(found.map((f) => path.basename(f))).toEqual(['.clinerules']);
+  });
+});
+
+describe('root files behind symlinks', () => {
+  const checks = [
+    checkTesting,
+    checkDependencies,
+    checkArchitecture,
+    checkGitHygiene,
+  ];
+
+  it('ignores a package.json that links outside the repository', async () => {
+    const target = path.join(outside, 'package.json');
+    await writeFile(
+      target,
+      JSON.stringify({
+        scripts: { test: 'vitest' },
+        engines: { node: '>=20' },
+        workspaces: ['packages/*'],
+      }),
+    );
+    await symlink(target, path.join(repo, 'package.json'));
+    const linked = await Promise.all(checks.map((check) => check(repo)));
+
+    await rm(path.join(repo, 'package.json'));
+    const absent = await Promise.all(checks.map((check) => check(repo)));
+    expect(linked).toEqual(absent);
+  });
+
+  it('ignores a .gitignore that links outside the repository', async () => {
+    const target = path.join(outside, 'gitignore');
+    await writeFile(target, 'node_modules\n.env\ndist\ncoverage\n');
+    await symlink(target, path.join(repo, '.gitignore'));
+    const linked = await checkGitHygiene(repo);
+
+    await rm(path.join(repo, '.gitignore'));
+    expect(linked).toEqual(await checkGitHygiene(repo));
+    expect(linked.findings).toContainEqual({
+      status: 'fail',
+      message: 'No .gitignore found',
+    });
+  });
+
+  it('does not read README.md contents through an outside link', async () => {
+    const target = path.join(outside, 'README.md');
+    await writeFile(target, 'install usage setup license\n'.repeat(30));
+    await symlink(target, path.join(repo, 'README.md'));
+    const linked = await checkDocumentation(repo);
+
+    await rm(path.join(repo, 'README.md'));
+    expect(linked).toEqual(await checkDocumentation(repo));
+  });
+
+  it('does not report placeholders from files that link outside', async () => {
+    await writeFile(path.join(outside, 'notes.md'), '<!-- Describe this -->');
+    await symlink(path.join(outside, 'notes.md'), path.join(repo, 'AGENTS.md'));
+    await mkdir(path.join(repo, 'docs'));
+    await symlink(
+      path.join(outside, 'notes.md'),
+      path.join(repo, 'docs', 'ARCHITECTURE.md'),
+    );
+    const results = [
+      await checkAgentInstructions(repo),
+      await checkArchitecture(repo),
+    ];
+    const messages = results.flatMap((r) => r.findings.map((f) => f.message));
+    expect(messages.some((m) => m.includes('placeholder'))).toBe(false);
+  });
+
+  it('still reads root files that link inside the repository', async () => {
+    await mkdir(path.join(repo, 'config'));
+    await writeFile(
+      path.join(repo, 'config', 'package.json'),
+      JSON.stringify({ workspaces: ['packages/*'] }),
+    );
+    await symlink('config/package.json', path.join(repo, 'package.json'));
+    await writeFile(path.join(repo, 'config', 'gitignore'), 'node_modules\n');
+    await symlink('config/gitignore', path.join(repo, '.gitignore'));
+
+    const architecture = await checkArchitecture(repo);
+    expect(architecture.findings.map((f) => f.message)).toContain(
+      'pnpm/npm workspace configured in package.json',
+    );
+    const git = await checkGitHygiene(repo);
+    expect(git.findings.map((f) => f.message)).not.toContain(
+      'No .gitignore found',
+    );
+  });
+});
+
+describe('JUnit report', () => {
+  it('stays well-formed when messages carry control characters', () => {
+    const result: AuditResult = {
+      repoPath: repo,
+      score: 0,
+      categories: [
+        {
+          id: 'testing',
+          label: 'Tests\x00',
+          score: 0,
+          maxScore: 10,
+          findings: [
+            {
+              status: 'fail',
+              message: 'bad\x0bname\x1b[31m\uFFFE\uD800 <&>',
+              files: ['a\x0cb.ts'],
+            },
+          ],
+        },
+      ],
+      missing: [],
+      recommendations: [],
+    };
+    const xml = formatJunitReport(result);
+    // Characters XML 1.0 forbids (tab, LF, and CR are allowed).
+    expect(xml).not.toMatch(
+      /[\x00-\x08\x0b\x0c\x0e-\x1f\uFFFE\uFFFF]|[\uD800-\uDFFF]/u,
+    );
+    expect(xml).toContain('name="bad name [31m\uFFFD\uFFFD &lt;&amp;&gt;"');
   });
 });

@@ -3,9 +3,10 @@ import path from 'node:path';
 import { fileExists } from '../../fs/fileExists.js';
 import { findFiles } from '../../fs/findFiles.js';
 import {
-  fileHasPlaceholderContent,
+  containsPlaceholderContent,
   PLACEHOLDER_WARNING,
 } from '../placeholderDetection.js';
+import { readRoot } from '../projectFiles.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 20;
@@ -64,7 +65,9 @@ export async function checkAgentInstructions(
       message: 'AGENTS.md found',
       files: ['AGENTS.md'],
     });
-    if (await fileHasPlaceholderContent(agentsMd)) {
+    if (
+      containsPlaceholderContent((await readRoot(repoPath, 'AGENTS.md')) ?? '')
+    ) {
       findings.push({
         status: 'warn',
         message: `${PLACEHOLDER_WARNING} (AGENTS.md)`,
