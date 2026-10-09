@@ -24,6 +24,20 @@ describe('findFiles', () => {
     expect(matches).toEqual([...matches].sort());
   });
 
+  it('does not descend past the deep option', async () => {
+    await mkdir(path.join(repoPath, 'a', 'b'), { recursive: true });
+    await writeFile(path.join(repoPath, 'top.md'), '');
+    await writeFile(path.join(repoPath, 'a', 'one.md'), '');
+    await writeFile(path.join(repoPath, 'a', 'b', 'two.md'), '');
+    const names = async (deep?: number) =>
+      (await findFiles(repoPath, '**/*.md', { deep }))
+        .map((f) => path.basename(f))
+        .sort();
+    expect(await names(1)).toEqual(['top.md']);
+    expect(await names(2)).toEqual(['one.md', 'top.md']);
+    expect(await names()).toEqual(['one.md', 'top.md', 'two.md']);
+  });
+
   it('returns an empty array when nothing matches', async () => {
     await writeFile(path.join(repoPath, 'a.txt'), '');
     expect(await findFiles(repoPath, '*.md')).toEqual([]);

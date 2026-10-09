@@ -109,6 +109,13 @@ describe('findTestFiles', () => {
     ]);
   });
 
+  it('classifies files under a root tests/ directory by their own convention first', async () => {
+    await put(repoPath, 'tests/test_api.py', '');
+    await put(repoPath, 'tests/helpers/data.json', '');
+    const scan = await findTestFiles(repoPath);
+    expect(scan.languages).toEqual(['Python', 'tests/ directory']);
+  });
+
   it('returns files in a stable sorted order', async () => {
     await put(repoPath, 'z_test.go', '');
     await put(repoPath, 'a_test.go', '');
