@@ -8,7 +8,13 @@ export function sumCategoryScores(categories: CategoryResult[]): number {
 export function buildMissingAndRecommendations(
   categories: CategoryResult[],
   repoPath: string,
+  ecosystems?: readonly string[],
 ): { missing: string[]; recommendations: string[] } {
+  // Recommend package.json changes only where Node.js is (or may be) in use.
+  const usesNode =
+    ecosystems === undefined ||
+    ecosystems.length === 0 ||
+    ecosystems.includes('node');
   const missing: string[] = [];
   const recommendations: string[] = [];
 
@@ -49,8 +55,12 @@ export function buildMissingAndRecommendations(
         }
         if (f.message.includes('test')) {
           add(
-            'test script or test files',
-            'Add tests and a package.json test script',
+            usesNode
+              ? 'test script or test files'
+              : 'test command or test files',
+            usesNode
+              ? 'Add tests and a package.json test script'
+              : 'Add tests and a test command (Makefile, justfile, Taskfile, or pyproject.toml task)',
           );
         }
       }
@@ -98,8 +108,21 @@ export function buildMissingAndRecommendations(
     if (testFail) {
       add('package.json test script', 'Add a test script to package.json');
     }
-    const tcWarn = workflowCat.findings.some((f) =>
-      f.message.includes('Missing typecheck script'),
+    const testCommandFail = workflowCat.findings.some((f) =>
+      f.message.includes('Missing test command'),
+    );
+    if (testCommandFail) {
+      add(
+        'test command',
+        usesNode
+          ? 'Add a test script to package.json or a test target to your task runner'
+          : 'Add a test target to your task runner (Makefile, justfile, Taskfile, or pyproject.toml)',
+      );
+    }
+    const tcWarn = workflowCat.findings.some(
+      (f) =>
+        f.message.includes('Missing typecheck script') ||
+        f.message.includes('Missing typecheck command'),
     );
     if (tcWarn) {
       add('typecheck script', 'Add typecheck script for agent validation');
@@ -119,16 +142,19 @@ export function buildMissingAndRecommendations(
 export function finalizeAuditResult(
   repoPath: string,
   categories: CategoryResult[],
+  ecosystems?: readonly string[],
 ): AuditResult {
   const score = sumCategoryScores(categories);
   const { missing, recommendations } = buildMissingAndRecommendations(
     categories,
     repoPath,
+    ecosystems,
   );
 
   return {
     repoPath,
     score,
+    ...(ecosystems ? { ecosystems: [...ecosystems] } : {}),
     categories,
     missing,
     recommendations,

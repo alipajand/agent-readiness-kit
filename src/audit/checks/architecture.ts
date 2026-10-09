@@ -5,6 +5,7 @@ import {
   fileHasPlaceholderContent,
   PLACEHOLDER_WARNING,
 } from '../placeholderDetection.js';
+import { findWorkspaceConfig } from './dependencies.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 15;
@@ -108,6 +109,16 @@ export async function checkArchitecture(
       status: 'pass',
       message: 'pnpm/npm workspace configured in package.json',
     });
+  } else {
+    const workspace = await findWorkspaceConfig(repoPath);
+    if (workspace) {
+      score = Math.min(MAX_SCORE, score + 2);
+      findings.push({
+        status: 'pass',
+        message: `Workspace configured: ${workspace}`,
+        files: [workspace.split(' ')[0]],
+      });
+    }
   }
 
   score = Math.min(MAX_SCORE, score);

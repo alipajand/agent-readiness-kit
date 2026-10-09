@@ -8,19 +8,22 @@ The CLI has no runtime server, database, or network dependencies beyond reading 
 
 ## Major components
 
-| Path                                | Role                                                                                                                      |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `src/cli.ts`                        | Commander entrypoint; routes `audit`, `check`, `diff`, `badge`, `fix`, `init`, and `generate` subcommands                 |
-| `src/audit/auditRepo.ts`            | Runs all 13 category checks in parallel, exposes `auditCategory` for single-check runs, and finalizes the 100-point score |
-| `src/audit/checks/*`                | Individual category auditors — 7 core + 6 supplemental (see below)                                                        |
-| `src/audit/scoring.ts`              | Score aggregation, missing items, and recommendations                                                                     |
-| `src/audit/history.ts`              | Reads/writes `.ark-history.json`; computes score deltas                                                                   |
-| `src/audit/placeholderDetection.ts` | Detects starter-template placeholders in checked-in docs                                                                  |
-| `src/config/*`                      | Loads and validates optional `.arkrc`; merges CLI flags with config                                                       |
-| `src/generate/*`                    | Writes starter files via `writeFileSafe` (skip unless `--force`)                                                          |
-| `src/report/*`                      | Formats audit output for terminal, JSON, Markdown, HTML, JUnit, SARIF, SVG badge, and diff                                |
-| `src/fs/*`                          | `writeFileSafe`, `resolveOutputPath`, glob helpers, existence checks                                                      |
-| `tests/*`                           | Vitest specs for checks, reports, config, and generation                                                                  |
+| Path                                | Role                                                                                                                              |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `src/cli.ts`                        | Commander entrypoint; routes `audit`, `check`, `diff`, `badge`, `fix`, `init`, and `generate` subcommands                         |
+| `src/audit/auditRepo.ts`            | Runs all 13 category checks in parallel, exposes `auditCategory` for single-check runs, and finalizes the 100-point score         |
+| `src/audit/checks/*`                | Individual category auditors — 7 core + 6 supplemental (see below)                                                                |
+| `src/audit/scoring.ts`              | Score aggregation, missing items, and recommendations                                                                             |
+| `src/audit/history.ts`              | Reads/writes `.ark-history.json`; computes score deltas                                                                           |
+| `src/audit/placeholderDetection.ts` | Detects starter-template placeholders in checked-in docs                                                                          |
+| `src/audit/ecosystems.ts`           | Detects Node.js, Python, Go, and Rust from manifests; scores ecosystem-specific signals as `floor(points × satisfied / detected)` |
+| `src/audit/projectFiles.ts`         | Line-based readers for Makefile, justfile, Taskfile, pyproject.toml, tox.ini, and noxfile.py                                      |
+| `src/audit/testFiles.ts`            | Test file conventions per language and the directories excluded from test discovery                                               |
+| `src/config/*`                      | Loads and validates optional `.arkrc`; merges CLI flags with config                                                               |
+| `src/generate/*`                    | Writes starter files via `writeFileSafe` (skip unless `--force`)                                                                  |
+| `src/report/*`                      | Formats audit output for terminal, JSON, Markdown, HTML, JUnit, SARIF, SVG badge, and diff                                        |
+| `src/fs/*`                          | `writeFileSafe`, `resolveOutputPath`, glob helpers, existence checks                                                              |
+| `tests/*`                           | Vitest specs for checks, reports, config, and generation                                                                          |
 
 ## Audit checks
 

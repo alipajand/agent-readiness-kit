@@ -1,6 +1,7 @@
 import pc from 'picocolors';
 import type { AuditResult } from '../types.js';
 import { toSafeText } from './safeText.js';
+import { describeEcosystems } from '../audit/ecosystems.js';
 
 export function formatTerminalReport(
   result: AuditResult,
@@ -25,6 +26,13 @@ export function formatTerminalReport(
       `Agent Readiness Score: ${pc.cyan(String(result.score))} / 100${deltaStr}`,
     ),
   );
+  if (result.ecosystems) {
+    lines.push(
+      pc.dim(
+        `Ecosystems: ${toSafeText(describeEcosystems(result.ecosystems))}`,
+      ),
+    );
+  }
 
   lines.push('');
   lines.push(pc.bold('Category scores:'));

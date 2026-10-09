@@ -4,6 +4,7 @@ export function toAuditJson(result: AuditResult): AuditJson {
   return {
     repoPath: result.repoPath,
     score: result.score,
+    ...(result.ecosystems ? { ecosystems: result.ecosystems } : {}),
     categories: result.categories.map((c) => ({
       id: c.id,
       label: c.label,

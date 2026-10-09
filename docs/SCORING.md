@@ -31,6 +31,99 @@ Supplemental categories let repos with gaps in core categories compensate, and g
 
 ---
 
+## Ecosystem applicability
+
+Some signals only make sense for a given stack: a lockfile, a runtime version pin, a test runner,
+a linter, a formatter. The audit detects the repository's ecosystems from their project files and
+scores each of these signals on the ecosystem's own equivalent files. All other signals
+(agent instructions, safety, architecture docs, documentation, CI, `.editorconfig`, dependency
+update bots) are the same for every repository.
+
+### Detection
+
+| Ecosystem | Detected from                                                                                         |
+| --------- | ----------------------------------------------------------------------------------------------------- |
+| Node.js   | `package.json`, or a root `pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `bun.lock`, `bun.lockb` |
+| Python    | `pyproject.toml`, `setup.py`, `Pipfile`, or a root `requirements*.txt` / `requirements/*.txt`         |
+| Go        | `go.mod`                                                                                              |
+| Rust      | `Cargo.toml`                                                                                          |
+
+Manifests count up to four directory levels deep (so `frontend/package.json` or
+`services/api/go.mod` are found), except in dependency, build, virtual environment, fixture, and
+example directories (`node_modules`, `vendor`, `third_party`, `dist`, `build`, `out`, `target`,
+`bin`, `obj`, `.next`, `coverage`, `.venv`, `venv`, `.tox`, `.nox`, `__pycache__`,
+`site-packages`, `fixtures`, `__fixtures__`, `testdata`, `examples`, `example`). A nested
+`requirements.txt` (for example `docs/requirements.txt`) does not make a repository Python.
+
+The detected ecosystems are reported in the `ecosystems` field of the JSON output (for example
+`["node", "python"]`, or `[]` when none matched) and in the terminal, Markdown, and HTML reports.
+
+### Formula
+
+For an ecosystem-specific signal worth `P` points:
+
+```
+detected ecosystems E (|E| ≥ 1):  points = floor(P × satisfied(E) / |E|)
+no ecosystem detected:            points = P if any supported ecosystem's evidence exists, else 0
+```
+
+- **Polyglot repositories** are scored on every stack. A Python API with a Next.js frontend that
+  locks Python dependencies (`uv.lock`) but not Node.js ones gets `floor(3 × 1/2) = 1` lockfile
+  point and a failing Node.js lockfile finding. Node.js checks are not switched off.
+- **Unknown stacks** (for example a Maven or Gradle project) get points only for evidence the audit
+  recognizes. A signal never earns points because it does not apply, so an empty repository still
+  scores 0.
+- `floor` keeps every score an integer and never rounds up past the evidence. The denominator is at
+  least 1, so there is no division by zero.
+
+Category maxima and weights are unchanged, every category still has a fixed `maxScore`, and the
+total is still the sum of category scores capped at 100. No category is marked not applicable or
+left out of the total, so scores stay on the same 0–100 scale. A repository that has an
+ecosystem's equivalent file (a `go.sum`, a pytest config) now earns the points a Node.js repository
+earns for its own file.
+
+### Ecosystem-specific signals
+
+| Signal (category, points)            | Node.js                                                                                            | Python                                                                                                                        | Go                                                                                     | Rust                                                                                      |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Lockfile (`dependencies`, 3)         | `pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `bun.lock`, `bun.lockb`, `npm-shrinkwrap.json` | `uv.lock`, `poetry.lock`, `Pipfile.lock`, `pdm.lock`, `pylock.toml`, or a `requirements*.txt` where every requirement is `==` | `go.sum`, or every `go.mod` declares no `require` (Go creates no `go.sum` then)        | `Cargo.lock`                                                                              |
+| Version pin (`dependencies`, 2)      | `.nvmrc`, `.node-version`, `nodejs` in `.tool-versions`, or `engines` in `package.json`            | `.python-version`, `python` in `.tool-versions`, `requires-python` (pyproject) or `python_version` (Pipfile)                  | `go` or `toolchain` directive in `go.mod`, `.go-version`, `golang` in `.tool-versions` | `rust-toolchain(.toml)`, `rust-version` in `Cargo.toml`, `rust` in `.tool-versions`       |
+| Test runner (`testing`, 4)           | vitest, jest, playwright, or cypress config                                                        | `pytest.ini`, `conftest.py`, `[tool.pytest.ini_options]`, `setup.cfg [tool:pytest]`, `tox.ini`, `noxfile.py`                  | built-in `go test`, when `*_test.go` files exist                                       | built-in `cargo test`, when Rust tests exist                                              |
+| Linter (`code-style`, 3)             | ESLint config                                                                                      | ruff, flake8, or pylint config, or `ruff check` / `flake8` / `pylint` in a task, hook, or CI                                  | `.golangci.*`, or `golangci-lint` / `go vet` / `staticcheck` in a task, hook, or CI    | `clippy.toml`, `[lints.clippy]` in `Cargo.toml`, or `cargo clippy` in a task, hook, or CI |
+| Formatter (`code-style`, 3)          | Prettier config                                                                                    | `[tool.black]`, `[tool.ruff.format]`, ruff `[format]`, or `ruff format` / `black` in a task, hook, or CI                      | `gofmt`, `go fmt`, `gofumpt`, or `goimports` in a task, hook, CI, or golangci config   | `rustfmt.toml`, or `cargo fmt` in a task, hook, or CI                                     |
+| `.gitignore` entries (`git-hygiene`) | `node_modules`, `dist`                                                                             | `__pycache__` (or `*.pyc`), `.venv` (or `venv`)                                                                               | binaries (`*.exe`, `*.test`, `bin/`), coverage (`*.out`)                               | `target`, `debug` (or `*.rs.bk`, `*.pdb`)                                                 |
+
+"Task, hook, or CI" means a `Makefile`, `justfile`, `Taskfile`, `.pre-commit-config.yaml`,
+`lefthook.yml`, `.github/workflows/*`, `.gitlab-ci.yml`, `tox.ini`, `noxfile.py`, or
+`pyproject.toml`.
+
+Without a detected ecosystem the Node.js wording is kept for linter, formatter, and `.gitignore`
+findings, and the Node.js `.gitignore` entries are expected, as before.
+
+### Where scoring did not change
+
+- Node.js-only repositories keep the same root-level evidence, points, and messages. The few
+  differences, all from evidence the audit used to miss or miscount:
+  - ESLint and Prettier configs, lockfiles, and `.nvmrc` / `.node-version` in nested packages
+    (up to four levels) count when the root has none.
+  - pre-commit, lefthook, and `.githooks/` count as git hooks, like Husky.
+  - `.tool-versions` counts as a Node.js pin only when it lists `nodejs`.
+  - Test files under `fixtures/`, `vendor/`, `build/`, `coverage/`, and similar directories are
+    no longer counted (from the #27 fix).
+- Agent instructions, architecture docs, safety, navigability, prompt assets, documentation,
+  containerization, and IDE configuration.
+- Category IDs, labels, maximum scores, and the 100-point cap.
+
+### Comparing scores across versions
+
+Scores from earlier versions are directly comparable for Node.js-only repositories. Repositories
+with Python, Go, or Rust usually score higher than before, because the audit now sees files it used
+to ignore. Polyglot repositories with a root `package.json` may score lower, because their other
+stacks are now checked too. Score history (`.ark/history.json`) and `ark diff` keep working, but a
+change in score across this upgrade can come from the scoring change, not from the repository.
+
+---
+
 ## Per-category scoring detail
 
 ### Agent instructions (max 20)
@@ -67,36 +160,49 @@ count as Claude context but are not treated as a replacement for a root
 
 ### Project architecture clarity (max 15)
 
-| Signal                                     | Points |
-| ------------------------------------------ | -----: |
-| `README.md` present                        |      5 |
-| `docs/ARCHITECTURE.md` or ADR directory    |      7 |
-| Monorepo `apps/` + `packages/` directories |      3 |
-| `package.json` workspaces configured       |      2 |
+| Signal                                                                                 | Points |
+| -------------------------------------------------------------------------------------- | -----: |
+| `README.md` present                                                                    |      5 |
+| `docs/ARCHITECTURE.md` or ADR directory                                                |      7 |
+| Monorepo `apps/` + `packages/` directories                                             |      3 |
+| Workspaces in `package.json`, `go.work`, Cargo `[workspace]`, or `[tool.uv.workspace]` |      2 |
 
 ### Developer workflow clarity (max 15)
 
-| `package.json` script | Points |
-| --------------------- | -----: |
-| `dev`                 |      2 |
-| `build`               |      3 |
-| `lint`                |      2 |
-| `test`                |      3 |
-| `typecheck`           |      3 |
-| `format`              |      1 |
-| `clean`               |      1 |
+Commands are read from root `package.json` scripts, a `Makefile`, `justfile`, `Taskfile.yml`,
+`pyproject.toml` tasks (poe, pdm, hatch, taskipy), `tox.ini` environments, and `noxfile.py`
+sessions. When there is no root `package.json`, nested ones (for example
+`frontend/package.json`) are read. `package.json` scripts need the exact name; other task runners
+also accept aliases (`fmt` → format, `vet`/`clippy` → lint, `mypy`/`pyright`/`type-check` →
+typecheck, `run`/`serve`/`start`/`watch` → dev, `compile` → build) and prefixed names such as
+`test-unit`. In a repository that is only Go and/or Rust, a build command also earns the typecheck
+points, because the compiler type-checks during the build.
 
-All seven scripts present yields **15/15**.
+| Command     | Points |
+| ----------- | -----: |
+| `dev`       |      2 |
+| `build`     |      3 |
+| `lint`      |      2 |
+| `test`      |      3 |
+| `typecheck` |      3 |
+| `format`    |      1 |
+| `clean`     |      1 |
+
+All seven commands present yields **15/15**.
 
 ### Testing and validation (max 15)
 
 | Signal                                              | Points |
 | --------------------------------------------------- | -----: |
 | Test files found (see conventions below)            |      5 |
-| Test runner config (vitest/jest/playwright/cypress) |      4 |
+| Test runner configured (per ecosystem, see above)   |      4 |
 | CI workflow in `.github/workflows/`                 |      3 |
-| `package.json` test script                          |      2 |
-| Coverage config (codecov, c8, vitest coverage)      |      1 |
+| Test command (`package.json` script or task runner) |      2 |
+| Coverage config (see below)                         |      1 |
+
+Coverage is detected from `codecov.yml`, c8, vitest or jest coverage, `.coveragerc`,
+`[tool.coverage]`, `setup.cfg [coverage:*]`, tarpaulin, or `-coverprofile` / `-cover`,
+`cargo tarpaulin` / `cargo llvm-cov`, `--cov`, or `coverage run` in a task, hook, or CI file.
 
 Test files are recognized by these conventions:
 
@@ -157,20 +263,22 @@ MCP server (`enableAllProjectMcpServers`) get a warning without a deduction.
 
 ### Dependency hygiene (max 10)
 
-| Signal                                                                                         | Points |
-| ---------------------------------------------------------------------------------------------- | -----: |
-| Lockfile (`pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `bun.lockb`)                     |      3 |
-| Node version pin (`.nvmrc`, `.node-version`, `.tool-versions`, or `engines` in `package.json`) |      2 |
-| Automated dependency updates (dependabot or renovate)                                          |      3 |
-| Package manager config (`.npmrc`, `.pnpmfile.cjs`)                                             |      1 |
-| `pnpm-workspace.yaml` in monorepo                                                              |      1 |
+| Signal                                                                                                               | Points |
+| -------------------------------------------------------------------------------------------------------------------- | -----: |
+| Lockfile (per ecosystem, see above)                                                                                  |      3 |
+| Runtime or toolchain version pin (per ecosystem, see above)                                                          |      2 |
+| Automated dependency updates (dependabot or renovate)                                                                |      3 |
+| Package manager config (`.npmrc`, `.pnpmfile.cjs`, `uv.toml`, `pip.conf`, `[tool.uv]`, `.cargo/config.toml`)         |      1 |
+| Workspace (`pnpm-workspace.yaml` with `apps/` or `packages/`, `go.work`, Cargo `[workspace]`, `[tool.uv.workspace]`) |      1 |
+
+Go has no repository-level package manager config file, so a Go-only repository can reach 9 of 10.
 
 ### Code style tooling (max 10)
 
 | Signal                                | Points |
 | ------------------------------------- | -----: |
-| ESLint config                         |      3 |
-| Prettier config                       |      3 |
+| Linter (per ecosystem, see above)     |      3 |
+| Formatter (per ecosystem, see above)  |      3 |
 | `.editorconfig`                       |      2 |
 | `.prettierignore` or `.eslintignore`  | 1 each |
 | Biome config (lint + format combined) |      3 |
@@ -190,15 +298,18 @@ Quality sections counted: install, usage, getting started, setup, development, c
 
 ### Git hygiene (max 10)
 
-| Signal                                                                  | Points |
-| ----------------------------------------------------------------------- | -----: |
-| Comprehensive `.gitignore` (covers node_modules, dist, .env, .DS_Store) |      3 |
-| Partial `.gitignore` (covers ≥1 common pattern)                         |      2 |
-| Minimal `.gitignore` (present)                                          |      1 |
-| Commitlint config                                                       |      3 |
-| Husky hooks (when no commitlint)                                        |      1 |
-| `.gitattributes`                                                        |      2 |
-| Release automation (release-it, semantic-release, changesets)           |      2 |
+| Signal                                                                                                   | Points |
+| -------------------------------------------------------------------------------------------------------- | -----: |
+| Comprehensive `.gitignore` (all but one expected entry, see below)                                       |      3 |
+| Partial `.gitignore` (covers ≥1 expected entry)                                                          |      2 |
+| Minimal `.gitignore` (present)                                                                           |      1 |
+| Commit message linting (commitlint, gitlint, cocogitto, commitizen)                                      |      3 |
+| Git hooks: Husky, pre-commit, lefthook, `.githooks/` (when no linting)                                   |      1 |
+| `.gitattributes`                                                                                         |      2 |
+| Release automation (release-it, semantic-release, changesets, GoReleaser, release-please, cargo-release) |      2 |
+
+Expected `.gitignore` entries are `.env`, `.DS_Store`, and the entries of each detected ecosystem
+(see above). A single-ecosystem repository needs 3 of 4, as before.
 
 ### Containerization (max 5)
 

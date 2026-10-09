@@ -1,4 +1,5 @@
 import type { AuditResult } from '../types.js';
+import { describeEcosystems } from '../audit/ecosystems.js';
 
 function scoreColor(score: number, max: number): string {
   const pct = max > 0 ? score / max : 0;
@@ -121,7 +122,11 @@ export function formatHtmlReport(result: AuditResult): string {
 <body>
 <div class="container">
   <h1>Agent Readiness Report</h1>
-  <p class="meta">Repository: <code>${escHtml(result.repoPath)}</code> &nbsp;·&nbsp; Generated: ${escHtml(timestamp)}</p>
+  <p class="meta">Repository: <code>${escHtml(result.repoPath)}</code> &nbsp;·&nbsp; Generated: ${escHtml(timestamp)}${
+    result.ecosystems
+      ? ` &nbsp;·&nbsp; Ecosystems: ${escHtml(describeEcosystems(result.ecosystems))}`
+      : ''
+  }</p>
 
   <div class="score-badge">
     <div>
