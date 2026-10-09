@@ -14,7 +14,7 @@ import { isWithin } from './safePath.js';
 export async function findFiles(
   repoPath: string,
   patterns: string | string[],
-  options?: { ignore?: string[] },
+  options?: { ignore?: string[]; deep?: number },
 ): Promise<string[]> {
   const patternList = Array.isArray(patterns) ? patterns : [patterns];
   const entries = await fg(patternList, {
@@ -27,6 +27,7 @@ export async function findFiles(
     // A pattern such as `.clinerules/**/*.md` makes fast-glob scan
     // `.clinerules` as a directory; when it is a file that throws ENOTDIR.
     suppressErrors: true,
+    deep: options?.deep ?? Infinity,
     ignore: options?.ignore ?? [
       '**/node_modules/**',
       '**/.git/**',

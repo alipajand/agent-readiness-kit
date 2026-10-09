@@ -92,11 +92,32 @@ All seven scripts present yields **15/15**.
 
 | Signal                                              | Points |
 | --------------------------------------------------- | -----: |
-| Test files found (`*.test.ts`, `*.spec.ts`, etc.)   |      5 |
+| Test files found (see conventions below)            |      5 |
 | Test runner config (vitest/jest/playwright/cypress) |      4 |
 | CI workflow in `.github/workflows/`                 |      3 |
 | `package.json` test script                          |      2 |
 | Coverage config (codecov, c8, vitest coverage)      |      1 |
+
+Test files are recognized by these conventions:
+
+| Language              | Pattern                                                                                                    |
+| --------------------- | ---------------------------------------------------------------------------------------------------------- |
+| JavaScript/TypeScript | `*.test.*`, `*.spec.*` (`js`, `jsx`, `mjs`, `cjs`, `ts`, `tsx`, `mts`, `cts`), `__tests__/`                |
+| Go                    | `*_test.go`                                                                                                |
+| Python                | `test_*.py`, `*_test.py`                                                                                   |
+| Rust                  | `tests/**/*.rs`, and `src/**/*.rs` files containing `#[test]` or `#[cfg(test)]` when a `Cargo.toml` exists |
+| Ruby                  | `*_spec.rb`, `test_*.rb`, `*_test.rb`                                                                      |
+| Java/Kotlin           | `src/test/**`, `*Test.java`, `*Tests.java` (and `.kt`)                                                     |
+| C#                    | `*.Tests/**/*.cs`, `*Test.cs`, `*Tests.cs`                                                                 |
+| Any                   | files under a root `tests/` or `test/` directory                                                           |
+
+Files under dependency, build, virtual environment, and fixture directories are not counted:
+`node_modules`, `vendor`, `third_party`, `dist`, `build`, `out`, `target`, `bin`, `obj`, `.next`,
+`coverage`, `.venv`, `venv`, `.tox`, `.nox`, `__pycache__`, `site-packages`, `fixtures`,
+`__fixtures__`, and `testdata`. At most 500 Rust source files are read for inline tests.
+
+A test file proves that tests exist, not that they pass. The other signals in this category cover
+whether tests are configured (runner config, test command) and verified (CI).
 
 ### Safety boundaries (max 15)
 

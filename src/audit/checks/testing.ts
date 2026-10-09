@@ -2,6 +2,7 @@ import path from 'node:path';
 import { readTextFile } from '../../fs/readTextFile.js';
 import { findFiles } from '../../fs/findFiles.js';
 import { readJsonFile } from '../../fs/writeFileSafe.js';
+import { findTestFiles } from '../testFiles.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 15;
@@ -19,28 +20,16 @@ const TEST_CONFIG_PATTERNS = [
   '**/cypress.config.*',
 ];
 
-const TEST_FILE_PATTERNS = [
-  '**/*.test.ts',
-  '**/*.test.tsx',
-  '**/*.test.js',
-  '**/*.spec.ts',
-  '**/*.spec.tsx',
-  '**/*.spec.js',
-  'tests/**/*',
-  'test/**/*',
-  '__tests__/**/*',
-];
-
 export async function checkTesting(repoPath: string): Promise<CategoryResult> {
   const findings: Finding[] = [];
   let score = 0;
 
-  const testFiles = await findFiles(repoPath, TEST_FILE_PATTERNS);
+  const { files: testFiles, languages } = await findTestFiles(repoPath);
   if (testFiles.length > 0) {
     score += 5;
     findings.push({
       status: 'pass',
-      message: `Test files found (${testFiles.length})`,
+      message: `Test files found (${testFiles.length}): ${languages.join(', ')}`,
       files: testFiles.slice(0, 10).map((f) => path.relative(repoPath, f)),
     });
   } else {
