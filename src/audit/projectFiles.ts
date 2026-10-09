@@ -300,6 +300,20 @@ export async function readRoot(
   return file ? readTextFile(file) : null;
 }
 
+/** Parse a JSON file at the repository root, read through `readRoot`. */
+export async function readRootJson<T>(
+  repoPath: string,
+  rel: string,
+): Promise<T | null> {
+  const raw = await readRoot(repoPath, rel);
+  if (raw === null) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * True when `rel` is a regular file inside the repository. Unlike
  * `fileExists`, a symlink to a file outside the repository does not count.

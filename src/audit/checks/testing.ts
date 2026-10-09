@@ -1,7 +1,6 @@
 import path from 'node:path';
 import { readTextFile } from '../../fs/readTextFile.js';
 import { findFiles } from '../../fs/findFiles.js';
-import { readJsonFile } from '../../fs/writeFileSafe.js';
 import { findTestFiles } from '../testFiles.js';
 import {
   detectEcosystems,
@@ -17,6 +16,7 @@ import {
   iniSections,
   readAutomationText,
   readRoot,
+  readRootJson,
   readTaskSources,
   tomlTables,
 } from '../projectFiles.js';
@@ -156,9 +156,7 @@ export async function checkTesting(
   }
 
   // 4. A test command is defined (package.json script or task runner target).
-  const pkg = await readJsonFile<PackageJson>(
-    path.join(repoPath, 'package.json'),
-  );
+  const pkg = await readRootJson<PackageJson>(repoPath, 'package.json');
   const scripts = pkg?.scripts ?? {};
   const hasTestScript =
     Boolean(scripts.test) ||

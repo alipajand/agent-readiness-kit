@@ -1,7 +1,12 @@
 import type { AuditResult } from '../types.js';
+import { toSafeText } from './safeText.js';
+
+// Lone surrogates and U+FFFE/U+FFFF are not allowed in XML 1.0 either.
+const INVALID_XML_CHARS = /[\uD800-\uDFFF\uFFFE\uFFFF]/gu;
 
 function escXml(str: string): string {
-  return str
+  return toSafeText(str)
+    .replace(INVALID_XML_CHARS, '\uFFFD')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
