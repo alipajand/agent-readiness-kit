@@ -1,5 +1,4 @@
 import path from 'node:path';
-import { readTextFile } from '../../fs/readTextFile.js';
 import { fileExists } from '../../fs/fileExists.js';
 import { findFiles } from '../../fs/findFiles.js';
 import {
@@ -7,7 +6,7 @@ import {
   type DetectedEcosystems,
   type EcosystemId,
 } from '../ecosystems.js';
-import { repoFileExists } from '../projectFiles.js';
+import { readRoot, repoFileExists } from '../projectFiles.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 10;
@@ -58,8 +57,7 @@ export async function checkGitHygiene(
   let score = 0;
 
   // .gitignore quality
-  const gitignorePath = path.join(repoPath, '.gitignore');
-  const gitignoreContent = await readTextFile(gitignorePath);
+  const gitignoreContent = await readRoot(repoPath, '.gitignore');
   if (gitignoreContent) {
     const lower = gitignoreContent.toLowerCase();
     const items = gitignoreItems(ecosystems.ids);

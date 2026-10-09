@@ -2,7 +2,6 @@ import path from 'node:path';
 import { fileExists, dirExists } from '../../fs/fileExists.js';
 import { findFiles } from '../../fs/findFiles.js';
 import { readTextFile } from '../../fs/readTextFile.js';
-import { readJsonFile } from '../../fs/writeFileSafe.js';
 import {
   detectEcosystems,
   findInRepo,
@@ -16,6 +15,7 @@ import {
 import {
   hasTomlTable,
   readRoot,
+  readRootJson,
   repoFileExists,
   tomlTables,
 } from '../projectFiles.js';
@@ -373,9 +373,7 @@ async function evaluateVersionPin(
     if (toolPinned(['nodejs', 'node'])) {
       return pass('Node version pinned: .tool-versions', '.tool-versions');
     }
-    const pkg = await readJsonFile<PackageJson>(
-      path.join(repoPath, 'package.json'),
-    );
+    const pkg = await readRootJson<PackageJson>(repoPath, 'package.json');
     if (pkg?.engines && Object.keys(pkg.engines).length > 0) {
       return pass(
         'Node version constrained via package.json engines field',

@@ -1,10 +1,10 @@
 import path from 'node:path';
 import { fileExists, dirExists } from '../../fs/fileExists.js';
-import { readJsonFile } from '../../fs/writeFileSafe.js';
 import {
   fileHasPlaceholderContent,
   PLACEHOLDER_WARNING,
 } from '../placeholderDetection.js';
+import { readRootJson } from '../projectFiles.js';
 import { findWorkspaceConfig } from './dependencies.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
@@ -90,8 +90,7 @@ export async function checkArchitecture(
   const hasApps = await dirExists(appsDir);
   const hasPackages = await dirExists(packagesDir);
 
-  const pkgPath = path.join(repoPath, 'package.json');
-  const pkg = await readJsonFile<PackageJson>(pkgPath);
+  const pkg = await readRootJson<PackageJson>(repoPath, 'package.json');
   const hasWorkspaces =
     pkg?.workspaces !== undefined &&
     (Array.isArray(pkg.workspaces) ? pkg.workspaces.length > 0 : true);
