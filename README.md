@@ -1,5 +1,11 @@
 # agent-readiness-kit
 
+[![version](https://img.shields.io/github/v/release/alipajand/agent-readiness-kit?label=version&color=blue)](https://github.com/alipajand/agent-readiness-kit/releases)
+[![tests](https://img.shields.io/badge/tests-309%20passing-brightgreen)](https://github.com/alipajand/agent-readiness-kit/actions/workflows/ci.yml)
+[![CI](https://github.com/alipajand/agent-readiness-kit/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/alipajand/agent-readiness-kit/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/alipajand/agent-readiness-kit/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/alipajand/agent-readiness-kit/actions/workflows/codeql.yml)
+[![license](https://img.shields.io/github/license/alipajand/agent-readiness-kit?color=blue)](LICENSE)
+
 A deterministic, local-first CLI that checks whether a repository is ready for AI coding agents — Cursor, Claude Code, Codex, GitHub Copilot, and other coding agents.
 
 It scores the repository out of 100 across 13 categories: agent instruction files, architecture docs, scripts, tests, safety boundaries (including Claude Code permission settings), and more. It prints a terminal summary, writes optional JSON, JUnit, SARIF, Markdown, or HTML reports, and can gate CI with `--min-score`. Use `ark init`, `ark generate`, and `ark fix` to scaffold practical starter files, including least-privilege Claude Code settings.
