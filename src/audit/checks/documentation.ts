@@ -1,6 +1,6 @@
 import path from 'node:path';
-import { readTextFile } from '../../fs/readTextFile.js';
 import { fileExists } from '../../fs/fileExists.js';
+import { readRoot } from '../projectFiles.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 10;
@@ -23,8 +23,7 @@ export async function checkDocumentation(
   let score = 0;
 
   // README quality
-  const readmePath = path.join(repoPath, 'README.md');
-  const readmeContent = await readTextFile(readmePath);
+  const readmeContent = await readRoot(repoPath, 'README.md');
   if (readmeContent) {
     const lower = readmeContent.toLowerCase();
     const keywordsFound = README_QUALITY_KEYWORDS.filter((kw) =>

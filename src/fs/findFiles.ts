@@ -8,7 +8,9 @@ import { isWithin } from './safePath.js';
  *
  * Symlinked directories are never traversed, so a link such as `docs -> /`
  * cannot walk the audit across the filesystem or list files from outside the
- * repository in a report. Symlinked files are kept when their target is a
+ * repository in a report. That includes a directory named in the pattern
+ * itself (`.github/workflows/*.yml` with `.github -> /elsewhere`), which
+ * fast-glob would otherwise enter. Symlinked files are kept when their target is a
  * regular file inside the repository (for example `CLAUDE.md -> AGENTS.md`).
  */
 export async function findFiles(
@@ -36,10 +38,23 @@ export async function findFiles(
   });
 
   const realRepo = await realpath(repoPath).catch(() => path.resolve(repoPath));
+  const realDirs = new Map<string, Promise<boolean>>();
+  const inRepoDir = (dir: string): Promise<boolean> => {
+    let inside = realDirs.get(dir);
+    if (!inside) {
+      inside = realpath(dir).then(
+        (real) => isWithin(realRepo, real),
+        () => false,
+      );
+      realDirs.set(dir, inside);
+    }
+    return inside;
+  };
+
   const matches: string[] = [];
   for (const entry of entries) {
     if (entry.dirent.isFile()) {
-      matches.push(entry.path);
+      if (await inRepoDir(path.dirname(entry.path))) matches.push(entry.path);
     } else if (
       entry.dirent.isSymbolicLink() &&
       (await isRegularFileInside(realRepo, entry.path))

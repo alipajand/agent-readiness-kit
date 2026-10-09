@@ -1,10 +1,10 @@
 import path from 'node:path';
 import { fileExists, dirExists } from '../../fs/fileExists.js';
 import {
-  fileHasPlaceholderContent,
+  containsPlaceholderContent,
   PLACEHOLDER_WARNING,
 } from '../placeholderDetection.js';
-import { readRootJson } from '../projectFiles.js';
+import { readRoot, readRootJson } from '../projectFiles.js';
 import { findWorkspaceConfig } from './dependencies.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
@@ -54,7 +54,7 @@ export async function checkArchitecture(
 
   if (
     archDocRel &&
-    (await fileHasPlaceholderContent(path.join(repoPath, archDocRel)))
+    containsPlaceholderContent((await readRoot(repoPath, archDocRel)) ?? '')
   ) {
     findings.push({
       status: 'warn',

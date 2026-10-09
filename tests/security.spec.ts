@@ -26,8 +26,10 @@ import {
   loadHistory,
 } from '../src/audit/history.js';
 import { loadArkrc } from '../src/config/loadArkrc.js';
+import { checkAgentInstructions } from '../src/audit/checks/agentInstructions.js';
 import { checkArchitecture } from '../src/audit/checks/architecture.js';
 import { checkDependencies } from '../src/audit/checks/dependencies.js';
+import { checkDocumentation } from '../src/audit/checks/documentation.js';
 import { checkGitHygiene } from '../src/audit/checks/gitHygiene.js';
 import { checkTesting } from '../src/audit/checks/testing.js';
 import { runInit } from '../src/generate/initFiles.js';
@@ -163,6 +165,13 @@ describe('findFiles', () => {
     await writeFile(path.join(outside, 'secret.md'), 'x');
     await symlink(outside, path.join(repo, 'docs'));
     expect(await findFiles(repo, '**/*.md')).toEqual([]);
+  });
+
+  it('does not list files under a symlinked directory named in the pattern', async () => {
+    await mkdir(path.join(outside, 'workflows'));
+    await writeFile(path.join(outside, 'workflows', 'ci.yml'), 'x');
+    await symlink(outside, path.join(repo, '.github'));
+    expect(await findFiles(repo, '.github/workflows/*.yml')).toEqual([]);
   });
 
   it('keeps symlinked files whose target is inside the repo', async () => {
@@ -438,6 +447,32 @@ describe('root files behind symlinks', () => {
       status: 'fail',
       message: 'No .gitignore found',
     });
+  });
+
+  it('does not read README.md contents through an outside link', async () => {
+    const target = path.join(outside, 'README.md');
+    await writeFile(target, 'install usage setup license\n'.repeat(30));
+    await symlink(target, path.join(repo, 'README.md'));
+    const linked = await checkDocumentation(repo);
+
+    await rm(path.join(repo, 'README.md'));
+    expect(linked).toEqual(await checkDocumentation(repo));
+  });
+
+  it('does not report placeholders from files that link outside', async () => {
+    await writeFile(path.join(outside, 'notes.md'), '<!-- Describe this -->');
+    await symlink(path.join(outside, 'notes.md'), path.join(repo, 'AGENTS.md'));
+    await mkdir(path.join(repo, 'docs'));
+    await symlink(
+      path.join(outside, 'notes.md'),
+      path.join(repo, 'docs', 'ARCHITECTURE.md'),
+    );
+    const results = [
+      await checkAgentInstructions(repo),
+      await checkArchitecture(repo),
+    ];
+    const messages = results.flatMap((r) => r.findings.map((f) => f.message));
+    expect(messages.some((m) => m.includes('placeholder'))).toBe(false);
   });
 
   it('still reads root files that link inside the repository', async () => {
