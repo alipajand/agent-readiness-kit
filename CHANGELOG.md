@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Ecosystem-specific signals are scored on each detected ecosystem's own files. The audit detects Node.js, Python, Go, and Rust from their manifests, and a lockfile, version pin, test runner, linter, or formatter counts when the ecosystem's equivalent exists (`go.sum`, `uv.lock`, the `go` directive, `requires-python`, pytest config, the built-in `go test` and `cargo test`, ruff, golangci-lint, gofmt, clippy, rustfmt). Polyglot repositories score `floor(points × satisfied / detected)` per signal, so every stack is checked. Repositories with no detected ecosystem get points only for evidence the audit recognizes. Category maxima and the 100-point total are unchanged. See `docs/SCORING.md#ecosystem-applicability` (#28).
+- Workflow reads commands from `Makefile`, `justfile`, `Taskfile`, `pyproject.toml` tasks, `tox.ini`, and `noxfile.py` as well as `package.json` scripts, and nested `package.json` scripts when there is no root one. The testing category accepts a test command from any of them.
+- Git hygiene counts pre-commit, lefthook, and `.githooks/` as git hooks, gitlint, cocogitto, and commitizen as commit linting, and GoReleaser, release-please, and cargo-release as release automation. `.gitignore` entries expected for Python, Go, and Rust replace the Node.js ones in those repositories.
+- `.tool-versions` counts as a Node.js version pin only when it lists `nodejs`.
+
+### Added
+
+- `ecosystems` in the audit result and JSON output (for example `["go"]`), also shown in terminal, Markdown, and HTML reports. Existing fields are unchanged.
+
 ### Fixed
 
 - Testing recognizes test files outside JavaScript: Go `*_test.go`, Python `test_*.py` and `*_test.py`, Rust `tests/` and inline `#[test]` modules, Ruby `*_spec.rb`, `test_*.rb`, and `*_test.rb`, Java/Kotlin `src/test/` and `*Test(s)`, and C# `*.Tests/` and `*Test(s).cs`. The finding names the languages it matched. Files in `vendor/`, `third_party/`, `build/`, `target/`, virtual environments, `coverage/`, `fixtures/`, and `testdata/` are no longer counted (#27).

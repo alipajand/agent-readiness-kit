@@ -13,6 +13,7 @@ import { checkGitHygiene } from './checks/gitHygiene.js';
 import { checkContainerization } from './checks/containerization.js';
 import { checkIdeConfig } from './checks/ideConfig.js';
 import { finalizeAuditResult } from './scoring.js';
+import { detectEcosystems, type DetectedEcosystems } from './ecosystems.js';
 import type { AuditResult, CategoryResult } from '../types.js';
 
 export const ALL_CHECK_IDS = [
@@ -33,10 +34,12 @@ export const ALL_CHECK_IDS = [
 
 export type CheckId = (typeof ALL_CHECK_IDS)[number];
 
-const CHECK_MAP: Record<
-  CheckId,
-  (repoPath: string) => Promise<CategoryResult>
-> = {
+type CheckFn = (
+  repoPath: string,
+  ecosystems?: DetectedEcosystems,
+) => Promise<CategoryResult>;
+
+const CHECK_MAP: Record<CheckId, CheckFn> = {
   'agent-instructions': checkAgentInstructions,
   architecture: checkArchitecture,
   workflow: checkWorkflow,
@@ -55,11 +58,12 @@ const CHECK_MAP: Record<
 export async function auditRepo(repoPath: string): Promise<AuditResult> {
   const resolved = path.resolve(repoPath);
 
+  const ecosystems = await detectEcosystems(resolved);
   const categories = await Promise.all(
-    ALL_CHECK_IDS.map((id) => CHECK_MAP[id](resolved)),
+    ALL_CHECK_IDS.map((id) => CHECK_MAP[id](resolved, ecosystems)),
   );
 
-  return finalizeAuditResult(resolved, categories);
+  return finalizeAuditResult(resolved, categories, ecosystems.ids);
 }
 
 export async function auditCategory(

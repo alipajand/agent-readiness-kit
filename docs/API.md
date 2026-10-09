@@ -28,11 +28,21 @@ prompt-assets, dependencies, code-style, documentation, git-hygiene,
 containerization, ide-config
 ```
 
-### `finalizeAuditResult(repoPath, categories): AuditResult`
+### `finalizeAuditResult(repoPath, categories, ecosystems?): AuditResult`
 
 **Module:** `src/audit/scoring.ts`
 
-Sums category scores (capped at 100), derives `missing` items and `recommendations` from findings.
+Sums category scores (capped at 100), derives `missing` items and `recommendations` from findings. When `ecosystems` is passed it is copied to `AuditResult.ecosystems` and used to word test-command recommendations.
+
+### `detectEcosystems(repoPath: string): Promise<DetectedEcosystems>`
+
+**Module:** `src/audit/ecosystems.ts`
+
+Detects Node.js, Python, Go, and Rust from project manifests. Returns `{ ids, manifests }`; `ids` is in the fixed order `node`, `python`, `go`, `rust`. `auditRepo` runs it once and passes the result to every check; a check called on its own detects for itself.
+
+### `AuditResult.ecosystems`
+
+Optional `string[]` of detected ecosystem ids (`[]` when none). Added after 1.0.0; results and JSON snapshots from earlier versions do not have it, and reports omit the line in that case. See [SCORING.md](SCORING.md#ecosystem-applicability).
 
 ## Reports
 

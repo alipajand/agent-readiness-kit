@@ -17,6 +17,11 @@ export type CategoryResult = {
 export type AuditResult = {
   repoPath: string;
   score: number;
+  /**
+   * Ecosystems detected from project manifests (`node`, `python`, `go`,
+   * `rust`). Empty when none matched. Absent in results from older versions.
+   */
+  ecosystems?: string[];
   categories: CategoryResult[];
   missing: string[];
   recommendations: string[];
@@ -25,6 +30,7 @@ export type AuditResult = {
 export type AuditJson = {
   repoPath: string;
   score: number;
+  ecosystems?: string[];
   categories: Array<{
     id: string;
     label: string;

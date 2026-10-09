@@ -2,20 +2,58 @@ import path from 'node:path';
 import { readTextFile } from '../../fs/readTextFile.js';
 import { fileExists } from '../../fs/fileExists.js';
 import { findFiles } from '../../fs/findFiles.js';
+import {
+  detectEcosystems,
+  type DetectedEcosystems,
+  type EcosystemId,
+} from '../ecosystems.js';
+import { repoFileExists } from '../projectFiles.js';
 import type { CategoryResult, Finding } from '../../types.js';
 
 const MAX_SCORE = 10;
 
-const GITIGNORE_QUALITY_PATTERNS = [
-  'node_modules',
-  'dist',
-  '.env',
-  '.DS_Store',
-];
+type GitignoreItem = { label: string; alternatives: string[] };
+
+const item = (label: string, ...alternatives: string[]): GitignoreItem => ({
+  label,
+  alternatives: alternatives.length > 0 ? alternatives : [label],
+});
+
+const UNIVERSAL_ITEMS = [item('.env'), item('.DS_Store')];
+
+/**
+ * Dependency and build-output entries a .gitignore should cover, per
+ * ecosystem. Repositories with no detected ecosystem use the Node.js entries,
+ * as before.
+ */
+const ECOSYSTEM_ITEMS: Record<EcosystemId, GitignoreItem[]> = {
+  node: [item('node_modules'), item('dist')],
+  python: [
+    item('__pycache__', '__pycache__', '*.pyc', '*.py[cod]'),
+    item('.venv', '.venv', 'venv'),
+  ],
+  go: [
+    item('Go binaries', '*.exe', '*.test', '/bin', 'bin/'),
+    item('Go coverage output', '*.out', 'coverage'),
+  ],
+  rust: [item('target'), item('debug', 'debug', '*.rs.bk', '*.pdb')],
+};
+
+export function gitignoreItems(ids: readonly EcosystemId[]): GitignoreItem[] {
+  const own = (ids.length > 0 ? ids : (['node'] as const)).flatMap(
+    (id) => ECOSYSTEM_ITEMS[id],
+  );
+  // Node.js lists node_modules and dist first; keep that order for its report.
+  return ids.length === 0 || ids[0] === 'node'
+    ? [...own, ...UNIVERSAL_ITEMS]
+    : [...UNIVERSAL_ITEMS, ...own];
+}
 
 export async function checkGitHygiene(
   repoPath: string,
+  detected?: DetectedEcosystems,
 ): Promise<CategoryResult> {
+  const ecosystems = detected ?? (await detectEcosystems(repoPath));
   const findings: Finding[] = [];
   let score = 0;
 
@@ -24,10 +62,13 @@ export async function checkGitHygiene(
   const gitignoreContent = await readTextFile(gitignorePath);
   if (gitignoreContent) {
     const lower = gitignoreContent.toLowerCase();
-    const hits = GITIGNORE_QUALITY_PATTERNS.filter((p) =>
-      lower.includes(p.toLowerCase()),
+    const items = gitignoreItems(ecosystems.ids);
+    const covered = items.filter((i) =>
+      i.alternatives.some((a) => lower.includes(a.toLowerCase())),
     );
-    if (hits.length >= 3) {
+    const hits = covered.map((i) => i.label);
+    // Comprehensive: at most one expected entry missing (3 of 4 for one stack).
+    if (hits.length >= items.length - 1) {
       score += 3;
       findings.push({
         status: 'pass',
@@ -38,7 +79,10 @@ export async function checkGitHygiene(
       score += 2;
       findings.push({
         status: 'warn',
-        message: `.gitignore exists but may be missing common entries (${GITIGNORE_QUALITY_PATTERNS.filter((p) => !lower.includes(p.toLowerCase())).join(', ')})`,
+        message: `.gitignore exists but may be missing common entries (${items
+          .filter((i) => !covered.includes(i))
+          .map((i) => i.label)
+          .join(', ')})`,
         files: ['.gitignore'],
       });
     } else {
@@ -65,10 +109,16 @@ export async function checkGitHygiene(
     '.commitlintrc.json',
     '.commitlintrc.yml',
     '.commitlintrc.yaml',
+    // Commit message linters outside the Node.js toolchain
+    '.gitlint',
+    'cog.toml',
+    '.cz.toml',
+    '.cz.json',
+    '.cz.yaml',
   ];
   let foundCommitlint: string | null = null;
   for (const rel of commitlintFiles) {
-    if (await fileExists(path.join(repoPath, rel))) {
+    if (await repoFileExists(repoPath, rel)) {
       foundCommitlint = rel;
       break;
     }
@@ -83,12 +133,28 @@ export async function checkGitHygiene(
   } else {
     // Check for conventional-commits reference in package.json scripts or husky
     const huskyFiles = await findFiles(repoPath, '.husky/**/*');
+    const hookConfigs = await findFiles(repoPath, [
+      '.pre-commit-config.yaml',
+      '.pre-commit-config.yml',
+      'lefthook.yml',
+      'lefthook.yaml',
+      '.lefthook.yml',
+      '.githooks/*',
+    ]);
     if (huskyFiles.length > 0) {
       score += 1;
       findings.push({
         status: 'pass',
         message: 'Husky hooks directory found',
         files: huskyFiles.map((f) => path.relative(repoPath, f)).slice(0, 3),
+      });
+    } else if (hookConfigs.length > 0) {
+      score += 1;
+      const rel = path.relative(repoPath, hookConfigs[0]);
+      findings.push({
+        status: 'pass',
+        message: `Git hooks configured: ${rel}`,
+        files: [rel],
       });
     } else {
       findings.push({
@@ -117,10 +183,14 @@ export async function checkGitHygiene(
     '.release-it.yaml',
     'release.config.js',
     'release.config.cjs',
+    '.goreleaser.yml',
+    '.goreleaser.yaml',
+    'release-please-config.json',
+    'release.toml',
   ];
   let foundRelease: string | null = null;
   for (const rel of releaseFiles) {
-    if (await fileExists(path.join(repoPath, rel))) {
+    if (await repoFileExists(repoPath, rel)) {
       foundRelease = rel;
       break;
     }

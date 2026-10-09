@@ -1,4 +1,5 @@
 import type { AuditResult } from '../types.js';
+import { describeEcosystems } from '../audit/ecosystems.js';
 import { codeSpan, escapeMarkdown } from './safeText.js';
 
 export function formatMarkdownReport(result: AuditResult): string {
@@ -9,6 +10,11 @@ export function formatMarkdownReport(result: AuditResult): string {
   lines.push('');
   lines.push(`**Repository:** ${codeSpan(result.repoPath)}`);
   lines.push(`**Score:** ${result.score} / 100`);
+  if (result.ecosystems) {
+    lines.push(
+      `**Ecosystems:** ${escapeMarkdown(describeEcosystems(result.ecosystems))}`,
+    );
+  }
   lines.push(`**Generated:** ${timestamp}`);
   lines.push('');
 
