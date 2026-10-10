@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Testing recognizes test files outside JavaScript: Go `*_test.go`, Python `test_*.py` and `*_test.py`, Rust `tests/` and inline `#[test]` modules, Ruby `*_spec.rb`, `test_*.rb`, and `*_test.rb`, Java/Kotlin `src/test/` and `*Test(s)`, and C# `*.Tests/` and `*Test(s).cs`. The finding names the languages it matched. Files in `vendor/`, `third_party/`, `build/`, `target/`, virtual environments, `coverage/`, `fixtures/`, and `testdata/` are no longer counted (#27).
 
+### Security
+
+- File discovery uses `tinyglobby` instead of `fast-glob`, so `braces` is no longer installed. `braces` has a stack-exhaustion advisory with no patched release (GHSA-vfj7-8cjw-p6xm). The audit only passes its own fixed patterns, so it was not reachable, but dependency scanners reported it for every consumer. Matching is unchanged: symlinked directories are still not walked, symlinked files are still kept only when they point at a regular file inside the repository, and `deep` limits keep their meaning.
+
 ## [1.0.0] - 2026-09-24
 
 ### Added

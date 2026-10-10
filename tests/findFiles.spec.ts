@@ -38,6 +38,41 @@ describe('findFiles', () => {
     expect(await names()).toEqual(['one.md', 'top.md', 'two.md']);
   });
 
+  it('expands brace patterns', async () => {
+    await mkdir(path.join(repoPath, '.github', 'workflows'), {
+      recursive: true,
+    });
+    await mkdir(path.join(repoPath, 'src', 'test'), { recursive: true });
+    await writeFile(path.join(repoPath, '.github', 'workflows', 'ci.yml'), '');
+    await writeFile(
+      path.join(repoPath, '.github', 'workflows', 'release.yaml'),
+      '',
+    );
+    await writeFile(
+      path.join(repoPath, '.github', 'workflows', 'notes.md'),
+      '',
+    );
+    await writeFile(path.join(repoPath, 'src', 'test', 'UserTests.kt'), '');
+    await writeFile(path.join(repoPath, 'src', 'test', 'User.kt'), '');
+    const rel = async (pattern: string) =>
+      (await findFiles(repoPath, pattern)).map((f) =>
+        relativeToRepo(repoPath, f),
+      );
+    expect(await rel('.github/workflows/*.{yml,yaml}')).toEqual([
+      path.join('.github', 'workflows', 'ci.yml'),
+      path.join('.github', 'workflows', 'release.yaml'),
+    ]);
+    expect(await rel('**/*{Test,Tests}.{java,kt}')).toEqual([
+      path.join('src', 'test', 'UserTests.kt'),
+    ]);
+  });
+
+  it('lists a directory named by the pattern without its contents', async () => {
+    await mkdir(path.join(repoPath, 'docs'));
+    await writeFile(path.join(repoPath, 'docs', 'guide.md'), '');
+    expect(await findFiles(repoPath, 'docs')).toEqual([]);
+  });
+
   it('returns an empty array when nothing matches', async () => {
     await writeFile(path.join(repoPath, 'a.txt'), '');
     expect(await findFiles(repoPath, '*.md')).toEqual([]);
