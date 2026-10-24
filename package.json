@@ -60,7 +60,7 @@
     "commander": "^15.0.0",
     "picocolors": "^1.1.1",
     "tinyglobby": "^0.2.17",
-    "zod": "^4.6.5"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
