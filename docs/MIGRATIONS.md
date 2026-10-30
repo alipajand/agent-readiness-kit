@@ -2,10 +2,6 @@
 
 This document tracks breaking changes to the `.arkrc` configuration format and the public CLI surface between versions. Follow these steps when upgrading `ark` in a project.
 
-## v0.x → future v1.0
-
-No breaking changes have been released yet. This section will be populated when a v1.0 release is planned.
-
 ## `.arkrc` format
 
 The `.arkrc` file is optional. When present it is validated with Zod at runtime. The current accepted shape is:
