@@ -11,7 +11,8 @@ import { findInRepo } from './ecosystems.js';
  */
 
 /**
- * Map each TOML table header (`[a.b]` or `[[a.b]]`) to the keys set in it.
+ * Map each TOML table header (`[a.b]` or `[[a.b]]`, optionally followed by a
+ * `# comment`) to the keys set in it.
  * Keys before the first header belong to the table named `''`.
  */
 export function tomlTables(content: string): Map<string, string[]> {
@@ -20,7 +21,7 @@ export function tomlTables(content: string): Map<string, string[]> {
   for (const raw of content.split(/\r?\n/)) {
     const line = raw.trim();
     if (line === '' || line.startsWith('#')) continue;
-    const header = /^\[\[?([^\]]*)\]\]?$/.exec(line);
+    const header = /^\[\[?([^\]]*)\]\]?\s*(?:#.*)?$/.exec(line);
     if (header) {
       current = header[1]
         .trim()

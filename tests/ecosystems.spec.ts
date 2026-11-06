@@ -16,6 +16,7 @@ import {
   pyprojectTasks,
   readTaskSources,
   taskfileTasks,
+  hasTomlTable,
   tomlTables,
   toxEnvironments,
 } from '../src/audit/projectFiles.js';
@@ -255,6 +256,26 @@ describe('task runner parsers', () => {
     expect(tables.get('tool.ruff')).toEqual(['line-length']);
     expect(tables.has('tool.uv.index')).toBe(true);
   });
+
+  it('recognizes TOML table headers followed by a comment', () => {
+    const tables = tomlTables(
+      [
+        '[project]',
+        'name = "x"',
+        '[tool.ruff]  # lint settings',
+        'line-length = 100',
+        '[[tool.uv.index]] # extra index',
+        'name = "y"',
+        '[tool.poe.tasks]#tasks',
+        'test = "pytest"',
+      ].join('\n'),
+    );
+    expect(tables.get('project')).toEqual(['name']);
+    expect(tables.get('tool.ruff')).toEqual(['line-length']);
+    expect(tables.get('tool.uv.index')).toEqual(['name']);
+    expect(hasTomlTable(tables, 'tool.poe.tasks')).toBe(true);
+    expect(pyprojectTasks(tables)).toEqual(['test']);
+  });
 });
 
 describe('role mapping', () => {
@@ -420,7 +441,7 @@ describe('untrusted project files', () => {
   it('parses pathological lines in linear time', () => {
     const spaces = ' '.repeat(200_000);
     const started = Date.now();
-    tomlTables(`[${spaces}x\n[a${spaces}.${spaces}b]\n`);
+    tomlTables(`[${spaces}x\n[a${spaces}.${spaces}b]\n[a]${spaces}x\n`);
     makefileTargets(`a${spaces}b\n`);
     justfileRecipes(`a${spaces}b\n`);
     noxSessions('@nox.session\n'.repeat(50_000));
