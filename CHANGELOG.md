@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Install docs work on npm 12, which refuses git packages unless `--allow-git=all` is passed (`EALLOWGIT`). The README runs `ark` with `npx --yes --allow-git=all --package=github:alipajand/agent-readiness-kit#<sha>`, pins the release commit SHA, adds a GitHub Actions example on Node 24 (npm 10 on Node 22 cannot `npx` a git package), explains why `npm install -g` from git fails on npm 11, and adds the `allowBuilds` entry pnpm 11 and later need to build it.
 - TOML table headers followed by a comment, such as `[tool.ruff]  # lint settings`, are recognized, so linter, formatter, task, and workspace config under them is no longer missed (#43).
 - Testing recognizes test files outside JavaScript: Go `*_test.go`, Python `test_*.py` and `*_test.py`, Rust `tests/` and inline `#[test]` modules, Ruby `*_spec.rb`, `test_*.rb`, and `*_test.rb`, Java/Kotlin `src/test/` and `*Test(s)`, and C# `*.Tests/` and `*Test(s).cs`. The finding names the languages it matched. Files in `vendor/`, `third_party/`, `build/`, `target/`, virtual environments, `coverage/`, `fixtures/`, and `testdata/` are no longer counted (#27).
 

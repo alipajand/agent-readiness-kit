@@ -14,15 +14,32 @@ It runs entirely on your machine: no telemetry, no network calls, no LLM calls. 
 
 ## Install
 
-`ark` is not published to npm yet. **The npm package named `agent-readiness-kit` is an unrelated project**; installing it does not give you this tool and runs someone else's code. Install a release from GitHub instead (the CLI is built during install):
+`ark` is not published to npm yet. **The npm package named `agent-readiness-kit` is an unrelated project**; installing it does not give you this tool and runs someone else's code. Run a release from GitHub instead (the CLI is built when npm fetches it). Pin the release's commit SHA, because tags can be moved. `a993d17a7f3fe0545d5cbfcba53f727c82d33f08` is `v1.0.0`:
 
 ```bash
-npm install -g github:alipajand/agent-readiness-kit#v1.0.0
-# or, as a dev dependency
-pnpm add -D github:alipajand/agent-readiness-kit#v1.0.0
+# Works on npm 11 and npm 12
+npx --yes --allow-git=all \
+  --package=github:alipajand/agent-readiness-kit#a993d17a7f3fe0545d5cbfcba53f727c82d33f08 \
+  -- ark audit
 ```
 
-Tags can be moved. To pin an exact version you have reviewed, use the tag's commit SHA instead of `v1.0.0`.
+- `--allow-git=all` is required on npm 12, which refuses packages fetched from git by default (`EALLOWGIT: Fetching packages of type "git" have been disabled`). npm 11 accepts the flag too. Use npm 11 or later (Node 24 ships npm 11): npm 10, the default on Node 22, exits with code 1 and no message when `npx` runs a package from git.
+- Prefer `npx` to `npm install -g`. On npm 11, a global install from git fails while building the CLI: npm runs the `prepare` build as another global install, so TypeScript is never installed and the build stops with `tsc: command not found`. On npm 12, `npm install -g --allow-git=all github:alipajand/agent-readiness-kit#a993d17a7f3fe0545d5cbfcba53f727c82d33f08` works.
+- To add it to a project with pnpm, run `pnpm add -D github:alipajand/agent-readiness-kit#a993d17a7f3fe0545d5cbfcba53f727c82d33f08`. pnpm 11 and later skip the build of a git package until you allow it in `pnpm-workspace.yaml`, so add the entry pnpm prints:
+
+  ```yaml
+  allowBuilds:
+    'agent-readiness-kit@https://codeload.github.com/alipajand/agent-readiness-kit/tar.gz/a993d17a7f3fe0545d5cbfcba53f727c82d33f08': true
+  ```
+
+In GitHub Actions:
+
+```yaml
+- uses: actions/setup-node@v7
+  with:
+    node-version: 24
+- run: npx --yes --allow-git=all --package=github:alipajand/agent-readiness-kit#a993d17a7f3fe0545d5cbfcba53f727c82d33f08 -- ark audit --min-score 70
+```
 
 Or clone and build locally:
 
